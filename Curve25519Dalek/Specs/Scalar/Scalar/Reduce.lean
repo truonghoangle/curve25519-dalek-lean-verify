@@ -5,7 +5,12 @@ Authors: Oliver Butterley, Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Scalar.Scalar.Unpack
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.MulInternal
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.MontgomeryReduce
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.Pack
+import Curve25519Dalek.Specs.Backend.Serial.U64.Constants.R
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.Invert
 /-! # Spec Theorem for `Scalar::reduce`
 
 Specification and proof for `Scalar::reduce`.
@@ -19,6 +24,8 @@ This function performs modular reduction.
 -/
 
 open Aeneas.Std Result
+open curve25519_dalek.backend.serial.u64
+open curve25519_dalek.scalar.Scalar52
 namespace curve25519_dalek.scalar.Scalar
 
 /-
@@ -39,6 +46,9 @@ natural language specs:
 - The result scalar s' is congruent to the input scalar s modulo L (the group order)
 - The result scalar s' is in canonical form (less than L)
 -/
+
+
+
 @[progress]
 theorem reduce_spec (s : Scalar) :
     ∃ s',
@@ -46,6 +56,32 @@ theorem reduce_spec (s : Scalar) :
     U8x32_as_Nat s'.bytes ≡ U8x32_as_Nat s.bytes [MOD L] ∧
     U8x32_as_Nat s'.bytes < L
     := by
-  sorry
+  unfold reduce
+  progress*
+  · sorry
+  · unfold constants.R constants.R_body
+    decide
+  simp[res_post_2]
+  rw[← x_post_2]
+  rw[← Nat.ModEq] at x_mod_l_post
+  rw[xR_post] at x_mod_l_post
+  have Rs:= R_spec
+  rw[← Nat.ModEq] at Rs
+  have := Nat.ModEq.mul_left (Scalar52_as_Nat x) Rs
+  have := Nat.ModEq.trans x_mod_l_post this
+  apply cancelR
+  apply Nat.ModEq.trans (Nat.ModEq.mul_right R res_post_1) this
+
+
+
+
+
+
+
+
+
+
+
+
 
 end curve25519_dalek.scalar.Scalar

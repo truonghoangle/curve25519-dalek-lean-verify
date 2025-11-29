@@ -49,6 +49,10 @@ theorem conditional_add_l_spec (u : Scalar52) (c : subtle.Choice) :
     (c.val = 1#u8 → Scalar52_as_Nat u' + carry.val * 2^260 = Scalar52_as_Nat u + L) ∧
     (c.val = 0#u8 → Scalar52_as_Nat u' = Scalar52_as_Nat u ∧ carry.val = 0)
     := by
+  unfold conditional_add_l conditional_add_l_loop
+  progress*
   sorry
+
+
 
 end curve25519_dalek.backend.serial.u64.scalar.Scalar52

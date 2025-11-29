@@ -31,7 +31,6 @@ natural language specs:
 
     • scalar_to_nat(v) = (scalar_to_nat(u) + scalar_to_nat(u')) mod L
 -/
-
 /-- **Spec and proof concerning `scalar.Scalar52.add`**:
 - No panic (always returns successfully)
 - The result represents the sum of the two input scalars modulo L
@@ -42,6 +41,48 @@ theorem add_spec (u u' : Scalar52) :
     add u u' = ok v ∧
     Scalar52_as_Nat v = (Scalar52_as_Nat u + Scalar52_as_Nat u') % L
     := by
+  unfold add backend.serial.u64.scalar.Scalar52.add_loop
+  simp[backend.serial.u64.scalar.Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index]
+  progress*
+  simp_all
   sorry
+  unfold backend.serial.u64.scalar.IndexMutcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index_mut
+  progress*
+  unfold backend.serial.u64.scalar.Scalar52.add_loop
+  simp[x_post, backend.serial.u64.scalar.Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index]
+  progress*
+  simp_all
+  sorry
+  simp_all
+  sorry
+  unfold backend.serial.u64.scalar.IndexMutcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index_mut
+  progress*
+  unfold backend.serial.u64.scalar.Scalar52.add_loop
+  simp_all[backend.serial.u64.scalar.Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index]
+  progress*
+  simp_all
+  sorry
+  simp_all
+  sorry
+  unfold backend.serial.u64.scalar.IndexMutcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index_mut
+  progress*
+  simp_all
+  sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end curve25519_dalek.backend.serial.u64.scalar.Scalar52

@@ -200,6 +200,15 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
     rw [show decide (56 ≤ j) by grind]
     all_goals grind
 
+theorem land_pow_two_sub_one_eq_mod (a n : Nat) :
+    a &&& (2^n - 1) = a % 2^n := by
+  induction n generalizing a
+  · simp
+    scalar_tac
+  · simp
+
+
+
 
 /-! ## Spec for `from_bytes` -/
 
@@ -220,10 +229,88 @@ Specification:
 - The resulting field element value (mod p) equals the little-endian interpretation
   of the bytes with the high bit (bit 255) cleared
 -/
+
+
+
+
+
+
+theorem bitVal (n : ℕ) (h : n < 2^64) :
+  n = ∑ j ∈  Finset.range 64, 2^j * (n.testBit j).toNat := by
+  induction' n with h a
+  . simp
+  . rename_i k
+    have : k< 2^64:= by scalar_tac
+    have :=a this
+
+
+
+
+
+
+lemma ofNat64_or (a b : Nat) :
+  BitVec.ofNat 64 (a ||| b)
+    = BitVec.ofNat 64 a ||| BitVec.ofNat 64 b := by
+  ext i
+  simp [BitVec.ofNat]
+  have := @Nat.or_mod_two_pow a b 64
+  simp at this
+  rw[this]
+  apply Nat.testBit_or
+
+
+
+
+
+
+
+
 @[progress]
 theorem from_bytes_spec (bytes : Array U8 32#usize) :
     ∃ result, from_bytes bytes = ok result ∧
     Field51_as_Nat result ≡ (U8x32_as_Nat bytes % 2^255) [MOD p] := by
+  unfold from_bytes
+  progress*
+  simp_all[Field51_as_Nat, Finset.sum_range_succ,Array.make, U64.size, U64.numBits,]
+  have := land_pow_two_sub_one_eq_mod i1 51
+  simp at this
+  rw[this]
+  have := land_pow_two_sub_one_eq_mod i4 51
+  simp_all
+  have := land_pow_two_sub_one_eq_mod i7 51
+  simp_all
+  have := land_pow_two_sub_one_eq_mod i10 51
+  simp_all
+  have := land_pow_two_sub_one_eq_mod i13 51
+  simp_all
+  simp_all[U8x32_as_Nat, Finset.sum_range_succ]
+  have: i1.val %2 ^51 =
+     (bytes.val[0]).val +
+     2^ 8 * (bytes.val[1]).val +
+     2^ (2 * 8) * (bytes.val[2]).val +
+     2^ (3 * 8) * (bytes.val[3]).val +
+     2^ (4 * 8) * (bytes.val[3]).val +
+     2^ (5 * 8) * (bytes.val[3]).val +
+     2^ (6 * 8) * (bytes.val[3]).val := by
+     sorry
   sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end curve25519_dalek.backend.serial.u64.field.FieldElement51

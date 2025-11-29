@@ -5,7 +5,10 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Square
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Mul
+import Curve25519Dalek.Specs.Field.FieldElement51.PowP58
+import Curve25519Dalek.Specs.Scalar.Scalar.CtEq
 /-! # Spec Theorem for `FieldElement51::sqrt_ratio_i`
 
 Specification and proof for `FieldElement51::sqrt_ratio_i`.
@@ -90,6 +93,60 @@ theorem sqrt_ratio_i_spec
     c.val = 0#u8 ∧ (r_nat^2 * v_nat) % p = (i_nat * u_nat) % p)
 
     := by
+    unfold sqrt_ratio_i 
+    progress*
+    . intro i hi
+      apply lt_of_le_of_lt (h_v_bounds i hi)
+      simp
+    . intro i hi
+      apply lt_trans (fe_post_2 i hi)
+      simp
+    . intro i hi
+      apply lt_of_le_of_lt (h_v_bounds i hi)
+      simp
+    . intro i hi
+      apply lt_trans (v3_post_2 i hi)
+      simp
+    . intro i hi
+      apply lt_trans (fe1_post_2  i hi)
+      simp
+    . intro i hi
+      apply lt_of_le_of_lt (h_v_bounds i hi)
+      simp
+    . intro i hi
+      apply lt_of_le_of_lt (h_u_bounds i hi)
+      simp
+    . intro i hi
+      apply lt_trans (v3_post_2  i hi)
+      simp
+    . intro i hi
+      apply lt_of_le_of_lt (h_u_bounds i hi)
+      simp
+    . intro i hi
+      apply lt_trans (v7_post_2  i hi)
+      simp
+    sorry  
+    . intro i hi
+      apply lt_trans (fe2_post_2  i hi)
+      simp
     sorry
+
+    . intro i hi
+      apply lt_trans (r_post_2 i hi)
+      simp
+    . intro i hi
+      apply lt_of_le_of_lt (h_v_bounds i hi)
+      simp
+    . intro i hi
+      apply lt_trans (fe5_post_2 i hi)
+      simp
+
+
+
+
+
+
+
+
 
 end curve25519_dalek.field.FieldElement51

@@ -5,7 +5,8 @@ Authors: Oliver Butterley, Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.FromBytes
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.Pack
 /-! # Spec Theorem for `Scalar::unpack`
 
 Specification and proof for `Scalar::unpack`.
@@ -45,6 +46,16 @@ theorem unpack_spec (s : Scalar) :
     pack u = ok s ∧
     Scalar52_as_Nat u = U8x32_as_Nat s.bytes
     := by
+  unfold unpack
+  progress*
+  obtain ⟨a, ha_ok, ha_mod, ha_lt ⟩  := pack_spec res
+  simp[res_post, ha_ok]
+  rw[res_post,  U8x32_as_Nat,  U8x32_as_Nat] at ha_mod
   sorry
+
+
+
+
+
 
 end curve25519_dalek.scalar.Scalar

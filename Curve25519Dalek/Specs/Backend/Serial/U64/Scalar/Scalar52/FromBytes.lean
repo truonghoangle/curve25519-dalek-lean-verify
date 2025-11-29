@@ -31,7 +31,6 @@ natural language specs:
 
     • scalar_to_nat(u) = u32x8_to_nat(b)
 -/
-
 /-- **Spec and proof concerning `scalar.Scalar52.from_bytes`**:
 - No panic (always returns successfully)
 - The result represents the same number as the input byte array
@@ -42,6 +41,11 @@ theorem from_bytes_spec (b : Array U8 32#usize) :
     from_bytes b = ok u ∧
     Scalar52_as_Nat u = U8x32_as_Nat b
     := by
+    unfold from_bytes from_bytes_loop
+    simp
+    progress*
+    simp
+    progress
     sorry
 
 end curve25519_dalek.backend.serial.u64.scalar.Scalar52

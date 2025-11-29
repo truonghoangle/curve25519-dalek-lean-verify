@@ -7,6 +7,7 @@ import Aeneas
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Aux
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.ConditionalAddL
 
 set_option linter.style.longLine false
 set_option linter.style.setOption false
@@ -36,6 +37,8 @@ attribute [-simp] Int.reducePow Nat.reducePow
 
 /-! ## Spec for `sub` -/
 
+
+
 /-- Auxiliary definition to interpret a vector of `j` u64 limbs as a number (51-bit limbs) -/
 def U64x5_slice_as_Nat (limbs : Array U64 5#usize) (j : Nat) : Nat :=
   ∑ i ∈ Finset.range j, 2^(51 * i) * (limbs[i]!).val
@@ -60,10 +63,43 @@ theorem sub_loop_spec (mask : U64) (a b difference : Array U64 5#usize) (borrow 
   unfold backend.serial.u64.scalar.IndexMutcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index_mut
   split
   · progress*
-    · sorry
-    · sorry
-    · sorry
-    · sorry
+    · have : i3.val ≤ 2:= by
+        simp_all
+        rw[Nat.shiftRight_eq_div_pow]
+        apply Nat.div_le_of_le_mul
+        scalar_tac
+      simp_all
+      rename_i i_lt
+      have :=Nat.add_le_add (le_of_lt (hb i i_lt)) this
+      apply le_trans this
+      scalar_tac
+    · intro j hj
+      simp_all[Array.set_val_eq]
+      have hj_le : j ≤ i := Nat.lt_succ_iff.mp hj
+      rcases (lt_or_eq_of_le hj_le) with hji | hji
+      · simp_all
+      · simp_all
+        apply Nat.mod_lt
+        simp
+    · intro j hji6 hj
+      simp_all
+      apply Nat.succ_le_iff.mp at hji6
+      simp_all
+      apply hd_rest
+      · apply le_of_lt hji6
+      · exact hj
+    · use res_1
+      use res_2
+      simp_all
+      constructor
+      · sorry
+      · intro j hj
+        apply res_post_2
+        exact hj
+
+
+
+
   · use difference, borrow
     constructor
     · rfl
@@ -73,6 +109,9 @@ theorem sub_loop_spec (mask : U64) (a b difference : Array U64 5#usize) (borrow 
         simp [this]
         -- When we've processed all 5 limbs, the arithmetic property should hold
         sorry
+
+
+
       · intro j hj
         by_cases h : j < i.val
         · exact hd j h
@@ -93,6 +132,30 @@ theorem sub_spec (a b : Array U64 5#usize)
     ∃ result, sub a b = ok result ∧
     Scalar52_as_Nat result ≡ (Scalar52_as_Nat a - Scalar52_as_Nat b) [MOD L] := by
   unfold sub
-  -- progress*
-
-  sorry
+  progress*
+  intro j hj hj_lt
+  unfold ZERO ZERO_body eval_global
+  simp_all
+  cases j
+  simp_all[Array.repeat]
+  rename_i j
+  cases j
+  simp_all[Array.repeat]
+  rename_i j
+  cases j
+  simp_all[Array.repeat]
+  rename_i j
+  cases j
+  simp_all[Array.repeat]
+  rename_i j
+  cases j
+  simp_all[Array.repeat]
+  rename_i j
+  cases j
+  simp_all
+  contradiction
+  unfold subtle.FromsubtleChoiceU8.from
+  by_cases h: i2= 0#u8
+  simp_all[backend.serial.u64.scalar.Scalar52.conditional_add_l]
+  simp_all
+  progress*
