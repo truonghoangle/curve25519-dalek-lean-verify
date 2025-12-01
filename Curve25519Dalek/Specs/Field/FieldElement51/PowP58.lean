@@ -5,7 +5,7 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Field.FieldElement51.Pow22501
 /-! # Spec Theorem for `FieldElement51::pow_p58`
 
 Specification and proof for `FieldElement51::pow_p58`.
@@ -20,6 +20,8 @@ and thus (p-5)/8 = 2^252 -3
 -/
 
 open Aeneas.Std Result
+open curve25519_dalek.backend.serial.u64.field.FieldElement51
+open curve25519_dalek.backend.serial.u64.constants
 namespace curve25519_dalek.field.FieldElement51
 
 /-
@@ -44,6 +46,8 @@ theorem pow_p58_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : �
     ∃ r', pow_p58 r = ok r' ∧
     Field51_as_Nat r' % p = (Field51_as_Nat r ^ (2 ^ 252 - 3)) % p
     := by
+    unfold pow_p58
     sorry
+
 
 end curve25519_dalek.field.FieldElement51

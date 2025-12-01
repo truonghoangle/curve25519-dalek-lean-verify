@@ -47,6 +47,8 @@ theorem is_small_order_spec (e : EdwardsPoint) :
     Identitycurve25519_dalekedwardsEdwardsPoint.identity = ok id ∧
     ConstantTimeEqcurve25519_dalekedwardsEdwardsPoint.ct_eq e8 id = ok eq_choice ∧
     (b = true ↔ eq_choice = Choice.one) := by
-    sorry
+    unfold is_small_order
+    progress*
+
 
 end curve25519_dalek.edwards.EdwardsPoint

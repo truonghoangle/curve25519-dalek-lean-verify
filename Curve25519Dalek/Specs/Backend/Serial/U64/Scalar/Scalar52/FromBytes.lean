@@ -41,11 +41,7 @@ theorem from_bytes_spec (b : Array U8 32#usize) :
     from_bytes b = ok u ∧
     Scalar52_as_Nat u = U8x32_as_Nat b
     := by
-    unfold from_bytes from_bytes_loop
-    simp
-    progress*
-    simp
-    progress
     sorry
+
 
 end curve25519_dalek.backend.serial.u64.scalar.Scalar52

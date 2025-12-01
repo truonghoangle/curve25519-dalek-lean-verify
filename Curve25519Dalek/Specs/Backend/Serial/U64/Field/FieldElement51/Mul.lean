@@ -40,7 +40,25 @@ theorem mul_spec (lhs rhs : Array U64 5#usize)
     (hlhs : ∀ i < 5, lhs[i]!.val < 2 ^ 54) (hrhs : ∀ i < 5, rhs[i]!.val < 2 ^ 54) :
     ∃ r, mul lhs rhs = ok r ∧
     Field51_as_Nat r ≡ (Field51_as_Nat lhs) * (Field51_as_Nat rhs) [MOD p] ∧
-    (∀ i < 5, r[i]!.val < 2 ^ 52) := by
-  sorry
+    (∀ i < 5, r[i]!.val < 2 ^ 51) := by
+  unfold mul mul.m 
+  progress*
+  . simp_all 
+    have := (Nat.mul_lt_mul_right (by simp: 0< 19)).mpr  (hrhs 1 (by simp: 1<5))
+    scalar_tac
+  . simp_all 
+    have := (Nat.mul_lt_mul_right (by simp: 0< 19)).mpr  (hrhs 2 (by simp: 2<5))
+    scalar_tac  
+  . simp_all 
+    have := (Nat.mul_lt_mul_right (by simp: 0< 19)).mpr  (hrhs 3 (by simp: 3<5))
+    scalar_tac  
+  . simp_all 
+    have := (Nat.mul_lt_mul_right (by simp: 0< 19)).mpr  (hrhs 4 (by simp: 4<5))
+    scalar_tac  
+  simp_all[Array.index_usize_spec]
+
+
+  
+
 
 end curve25519_dalek.backend.serial.u64.field.FieldElement51.Mul
