@@ -5,5 +5,9 @@
     "curve25519_dalek_backend=\"serial\"",
     "curve25519_dalek_bits=\"64\""
   ],
-  "editor.rulers": [100]
+  "editor.rulers": [
+    100
+  ],
+  "rust-analyzer.checkOnSave": false,
+  "CodeGPT.apiKey": "OpenRouter"
 }
