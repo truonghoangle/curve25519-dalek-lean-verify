@@ -5,7 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Field.FieldElement51.IsNegative
 /-! # Spec Theorem for `AffinePoint::compress`
 
 Specification and proof for `edwards.affine.AffinePoint.compress`.
@@ -21,6 +21,7 @@ storing the sign bit of x in the most significant bit of the last byte.
 -/
 
 open Aeneas.Std Result
+open curve25519_dalek.field.FieldElement51
 namespace curve25519_dalek.edwards.affine.AffinePoint
 
 /-
@@ -51,8 +52,8 @@ Natural language specs:
 @[progress]
 theorem compress_spec (a : edwards.affine.AffinePoint) :
     ∃ (cey : edwards.CompressedEdwardsY) (x_sign : subtle.Choice),
-    edwards.affine.AffinePoint.compress a = ok cey ∧
-    field.FieldElement51.is_negative a.x = ok x_sign ∧
+    compress a = ok cey ∧
+    is_negative a.x = ok x_sign ∧
     U8x32_as_Nat cey % p = (Field51_as_Nat a.y + (if cey[31].val.testBit 7 then 2^255 else 0)) % p ∧
     (cey[31].val.testBit 7 ↔ x_sign.val = 1#u8) := by
   /-
@@ -65,6 +66,17 @@ theorem compress_spec (a : edwards.affine.AffinePoint) :
   • The numeric statement follows because the low 255 bits are y's canonical
     little-endian representation and the MSB contributes 2^255 iff set.
   -/
-  sorry
+  unfold compress subtle.Choice.unwrap_u8
+  progress*
+  simp_all
+
+
+
+
+
+
+
+
+
 
 end curve25519_dalek.edwards.affine.AffinePoint
