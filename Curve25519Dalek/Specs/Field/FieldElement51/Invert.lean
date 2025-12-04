@@ -6,6 +6,7 @@ Authors: Markus Dablander
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
 import Curve25519Dalek.Specs.Field.FieldElement51.Pow22501
+import Curve25519Dalek.Defs.Edwards.Curve
 /-! # Spec Theorem for `FieldElement51::invert`
 
 Specification and proof for `FieldElement51::invert`.
@@ -47,9 +48,17 @@ Natural language specs:
 - If r ≡ 0 (mod p), then Field51_as_Nat(r') ≡ 0 (mod p)
 -/
 
+theorem prime_25519 : Nat.Prime p := by
+  sorry
 
 
-
+lemma coprime_of_prime_not_dvd {a p : ℕ}
+(hp : p.Prime) (hpa : ¬ p ∣ a) : Nat.Coprime a p := by
+  have hgp_div_p : gcd a p ∣ p := gcd_dvd_right a p
+  rcases (Nat.dvd_prime hp).1 hgp_div_p with hgp1 | hgp2
+  · simpa [Nat.Coprime, hgp1]
+  · have : p ∣ a := by simpa [hgp2] using gcd_dvd_left a p
+    exact (hpa this).elim
 
 @[progress]
 theorem invert_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : ∀ i, i < 5 → (r[i]!).val < 2 ^ 54) :
@@ -92,12 +101,12 @@ theorem invert_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : �
        unfold p
        simp
       rw[this]
-      apply Nat.ModEq.pow_card_sub_one_eq_one
-      · sorry
-      · sorry
-
-
-
+      apply Nat.ModEq.pow_card_sub_one_eq_one prime_25519
+      apply coprime_of_prime_not_dvd prime_25519
+      intro hp
+      apply hne
+      apply Nat.dvd_iff_mod_eq_zero.mp
+      exact hp
     · constructor
       · intro h0
         have ht20m := Nat.ModEq.mul_right (Field51_as_Nat __discr_2) t20_post_2
@@ -117,26 +126,6 @@ theorem invert_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : �
         have := Nat.ModEq.pow 57896044618658097711785492504343953926634992332820282019728792003956564819947 h0
         simp at this
         apply this
-      · sorry
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      · simp_all
 
 end curve25519_dalek.field.FieldElement51
