@@ -5,7 +5,9 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Pow2K
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Square
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Mul
 /-! # Spec Theorem for `FieldElement51::pow22501`
 
 Specification and proof for `FieldElement51::pow22501`.
@@ -49,6 +51,181 @@ theorem pow22501_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : 
     (∀ i, i < 5 → (r1[i]!).val < 2 ^ 52) ∧
     (∀ i, i < 5 → (r2[i]!).val < 2 ^ 52)
     := by
-    sorry
+    unfold pow22501
+    progress*
+    · intro i hi
+      apply lt_trans (t0_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (fe_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t1_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t0_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t2_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t3_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t2_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t4_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t5_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t6_post_1 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t5_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t7_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t8_post_1 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t7_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t9_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t10_post_1 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t9_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t11_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t12_post_1 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t7_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t13_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t14_post_1 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t13_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t15_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t16_post_1 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t15_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t17_post_2 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t18_post_1 i hi)
+      simp
+    · intro i hi
+      apply lt_trans (t13_post_2 i hi)
+      simp
+    use t19
+    use t3
+    simp
+    constructor
+    · rw[← Nat.ModEq]
+      apply Nat.ModEq.trans t19_post_1
+      have := Nat.ModEq.mul_right (Field51_as_Nat t13) t18_post_2
+      apply Nat.ModEq.trans this
+      have one:= pow_one (Field51_as_Nat t15)
+      have ht151:= pow_add (Field51_as_Nat t15) 1267650600228229401496703205376 1
+      rw[one] at ht151
+      have ht150:= Nat.ModEq.mul_right (Field51_as_Nat t15) t16_post_2
+      rw[← ht151] at ht150
+      have ht1715:= Nat.ModEq.trans t17_post_1 ht150
+      have ht1715p:= Nat.ModEq.pow 1125899906842624 ht1715
+      rw[← pow_mul] at ht1715p
+      have one13:= pow_one (Field51_as_Nat t13)
+      have ht131:= pow_add (Field51_as_Nat t13) 1125899906842624 1
+      rw[one13] at ht131
+      have ht130:= Nat.ModEq.mul_right (Field51_as_Nat t13) t14_post_2
+      rw[← ht131] at ht130
+      have ht1513:= Nat.ModEq.trans t15_post_1 ht130
+      have ht1513p:= Nat.ModEq.pow ((1267650600228229401496703205376 + 1) * 1125899906842624) ht1513
+      have ht1713:= Nat.ModEq.trans ht1715p ht1513p
+      have := Nat.ModEq.mul_right (Field51_as_Nat t13) ht1713
+      apply Nat.ModEq.trans this
+      rw[← pow_mul]
+      have := pow_add (Field51_as_Nat t13) ((1125899906842624 + 1) * ((1267650600228229401496703205376 + 1) *
+      1125899906842624)) 1
+      rw[one13] at this
+      rw[← this]
+
+
+
+
+    constructor
+    · rw[← Nat.ModEq]
+      apply Nat.ModEq.trans t3_post_1
+      have := (Nat.ModEq.mul_left (Field51_as_Nat t0) t2_post_1 )
+      apply Nat.ModEq.trans this
+      rw[mul_comm, mul_assoc]
+      have fep:= Nat.ModEq.pow 2 fe_post_1
+      have :=Nat.ModEq.trans t1_post_1 fep
+      have := Nat.ModEq.mul_right (Field51_as_Nat t0) this
+      rw[← pow_mul] at this
+      have one:= pow_one (Field51_as_Nat t0)
+      have ht00:= pow_add (Field51_as_Nat t0) (2*2) 1
+      rw[one] at ht00
+      rw[← ht00] at this
+      have ht0p:= Nat.ModEq.pow (2*2+1) t0_post_1
+      have :=Nat.ModEq.trans this ht0p
+      have := Nat.ModEq.mul_left (Field51_as_Nat r) this
+      apply Nat.ModEq.trans this
+      rw[← pow_mul]
+      have one:= pow_one (Field51_as_Nat r)
+      have := pow_add (Field51_as_Nat r)  1 (2 * (2 * 2 + 1))
+      rw[one] at this
+      rw[← this]
+    constructor
+    · intro i hi
+      simp_all
+    · intro i hi
+      simp_all
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end curve25519_dalek.field.FieldElement51
