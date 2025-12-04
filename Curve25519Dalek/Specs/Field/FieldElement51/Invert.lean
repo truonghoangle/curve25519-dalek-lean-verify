@@ -46,6 +46,11 @@ Natural language specs:
 - If r ≢ 0 (mod p), then Field51_as_Nat(r') * Field51_as_Nat(r) ≡ 1 (mod p)
 - If r ≡ 0 (mod p), then Field51_as_Nat(r') ≡ 0 (mod p)
 -/
+
+
+
+
+
 @[progress]
 theorem invert_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : ∀ i, i < 5 → (r[i]!).val < 2 ^ 54) :
     ∃ r', invert r = ok r' ∧
@@ -88,13 +93,40 @@ theorem invert_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : �
        simp
       rw[this]
       apply Nat.ModEq.pow_card_sub_one_eq_one
-      · unfold p
-        decide
+      · sorry
+      · sorry
 
 
-
-      sorry
     · constructor
+      · intro h0
+        have ht20m := Nat.ModEq.mul_right (Field51_as_Nat __discr_2) t20_post_2
+        have hres1 := Nat.ModEq.trans res_post_1  ht20m
+        rw[← Nat.ModEq] at __discr_post_2
+        have ht21m := Nat.ModEq.mul_left  (Field51_as_Nat __discr_1 ^ 32) __discr_post_2
+        have hres2 := Nat.ModEq.trans hres1 ht21m
+        rw[← Nat.ModEq] at __discr_post_1
+        have hp1p:= Nat.ModEq.pow 32 __discr_post_1
+        have ht21m := Nat.ModEq.mul_right (Field51_as_Nat r ^ 11) hp1p
+        have hres2 := Nat.ModEq.trans hres2 ht21m
+        rw[← pow_mul,← pow_add, Nat.ModEq] at hres2
+        simp[hres2]
+        have : 0 = 0 %p:= by decide
+        rw[this, ← Nat.ModEq]
+        rw[this, ← Nat.ModEq] at h0
+        have := Nat.ModEq.pow 57896044618658097711785492504343953926634992332820282019728792003956564819947 h0
+        simp at this
+        apply this
+      · sorry
+
+
+
+
+
+
+
+
+
+
 
 
 
