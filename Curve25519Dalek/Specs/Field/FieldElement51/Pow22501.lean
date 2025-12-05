@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Dablander
+Authors: Markus Dablander, Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
@@ -16,8 +16,6 @@ This function computes (r^(2^250-1), r^11) for a field element r in 𝔽_p where
 
 **Source**: curve25519-dalek/src/field.rs
 
-## TODO
-- Complete proof
 -/
 
 open Aeneas.Std Result
