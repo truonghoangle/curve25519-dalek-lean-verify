@@ -5,6 +5,7 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Mul
 
 /-! # Spec Theorem for `CompletedPoint::as_projective`
 
@@ -69,6 +70,9 @@ X' % p = (X * T) % p ∧
 Y' % p = (Y * Z) % p ∧
 Z' % p = (Z * T) % p
 := by
-  sorry
+  unfold as_projective
+  progress*
+  rw[← Nat.ModEq,← Nat.ModEq,← Nat.ModEq]
+  simp_all
 
 end curve25519_dalek.backend.serial.curve_models.CompletedPoint
