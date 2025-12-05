@@ -5,7 +5,7 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Mul
 /-! # Spec Theorem for `CompletedPoint::as_extended`
 
 Specification and proof for `CompletedPoint::as_extended`.
@@ -73,6 +73,19 @@ Y' % p = (Y * Z) % p ∧
 Z' % p = (Z * T) % p ∧
 T' % p = (X * Y) % p
 := by
-  sorry
+  unfold as_extended
+  progress*
+  rw[← Nat.ModEq,← Nat.ModEq,← Nat.ModEq, ← Nat.ModEq]
+  constructor
+  · apply Nat.ModEq.trans fe_post_1
+    apply Nat.ModEq.refl
+  constructor
+  · apply Nat.ModEq.trans fe1_post_1
+    apply Nat.ModEq.refl
+  constructor
+  · apply Nat.ModEq.trans fe2_post_1
+    apply Nat.ModEq.refl
+  · apply Nat.ModEq.trans fe3_post_1
+    apply Nat.ModEq.refl
 
 end curve25519_dalek.backend.serial.curve_models.CompletedPoint
