@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Dablander
+Authors: Markus Dablander, Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
@@ -76,16 +76,6 @@ T' % p = (X * Y) % p
   unfold as_extended
   progress*
   rw[← Nat.ModEq,← Nat.ModEq,← Nat.ModEq, ← Nat.ModEq]
-  constructor
-  · apply Nat.ModEq.trans fe_post_1
-    apply Nat.ModEq.refl
-  constructor
-  · apply Nat.ModEq.trans fe1_post_1
-    apply Nat.ModEq.refl
-  constructor
-  · apply Nat.ModEq.trans fe2_post_1
-    apply Nat.ModEq.refl
-  · apply Nat.ModEq.trans fe3_post_1
-    apply Nat.ModEq.refl
+  simp_all
 
 end curve25519_dalek.backend.serial.curve_models.CompletedPoint
