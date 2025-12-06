@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Dablander
+Authors: Markus Dablander, Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
@@ -18,8 +18,6 @@ This function returns zero on input zero.
 
 **Source**: curve25519-dalek/src/field.rs
 
-## TODO
-- Complete proof
 -/
 
 open Aeneas.Std Result
@@ -91,7 +89,7 @@ theorem invert_spec (r : backend.serial.u64.field.FieldElement51) (h_bounds : �
       have hp1p:= Nat.ModEq.pow 32 __discr_post_1
       have ht21m := Nat.ModEq.mul_right (Field51_as_Nat r ^ 11) hp1p
       have hres2 := Nat.ModEq.trans hres2 ht21m
-      rw[← pow_mul,← pow_add, Nat.ModEq] at hres2
+      rw[← pow_mul, ← pow_add, Nat.ModEq] at hres2
       simp[hres2]
       have one:= pow_one (Field51_as_Nat r)
       have := pow_add (Field51_as_Nat r)  57896044618658097711785492504343953926634992332820282019728792003956564819947 1
