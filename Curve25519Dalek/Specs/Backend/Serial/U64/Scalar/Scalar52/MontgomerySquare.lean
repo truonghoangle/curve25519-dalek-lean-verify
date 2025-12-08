@@ -5,7 +5,8 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.SquareInternal
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.MontgomeryReduce
 /-! # Spec Theorem for `Scalar52::montgomery_square`
 
 Specification and proof for `Scalar52::montgomery_square`.
@@ -46,6 +47,16 @@ theorem montgomery_square_spec (m : Scalar52) :
     montgomery_square m = ok w ∧
     (Scalar52_as_Nat m * Scalar52_as_Nat m) % L = (Scalar52_as_Nat w * R) % L
     := by
+  unfold montgomery_square
+  progress*
   sorry
+
+
+
+
+
+
+
+
 
 end curve25519_dalek.backend.serial.u64.scalar.Scalar52

@@ -36,6 +36,37 @@ attribute [-simp] Int.reducePow Nat.reducePow
 
 /-! ## Spec for `sub` -/
 
+/-- Spec for one full pass of `sub_loop` starting at i = 0 with a zero
+accumulator and zero incoming borrow. It states that the routine computes the
+low-260-bit difference of `a` and `b` (i.e., subtraction modulo 2^(52*5)), and the result
+has properly bounded limbs.
+
+Formally, if `(d, bor)` is the output of the loop started with zero state, then
+  Scalar52_as_Nat a = Scalar52_as_Nat b + Scalar52_as_Nat d + 2^(52*5) * borBit
+where `borBit = if bor.val.testBit 63 then 1 else 0` extracts the final borrow bit.
+
+We keep the proof as a TODO, mirroring the style of other spec files. -/
+@[progress]
+theorem sub_loop_spec
+    (a b : curve25519_dalek.backend.serial.u64.scalar.Scalar52) (mask : U64)
+    (ha : ∀ i < 5, a[i]!.val < 2 ^ 52)
+    (hb : ∀ i < 5, b[i]!.val < 2 ^ 52)
+    (hmask : mask.val = 2 ^ 52 - 1) :
+    ∃ d bor,
+      sub_loop a b ZERO mask 0#u64 0#usize = ok (d, bor) ∧
+      Scalar52_as_Nat a =
+        Scalar52_as_Nat b +
+        Scalar52_as_Nat d +
+        2 ^ (5 * 52) * (if bor.val.testBit 63 then 1 else 0) ∧
+      (∀ j < 5, d[j]!.val < 2 ^ 52) := by
+  -- Outline: unfold `sub_loop` and proceed by induction on the remaining limb
+  -- count, tracking the borrow via the high bit of the running `borrow` word.
+  -- Each limb written is masked by `mask = 2^52 - 1`, ensuring 52-bit bounds.
+  -- The arithmetic relation follows from base-2^52 subtraction with borrow
+  -- accumulation into the top bit (bit 63) of the `borrow` word.
+  -- TODO: complete proof
+  sorry
+
 -- /-- **Spec for `backend.serial.u64.scalar.Scalar52.sub_loop`**: -/
 -- @[progress]
 -- theorem sub_loop_spec (mask : U64) (a b difference : Array U64 5#usize) (borrow : U64) (i : Usize)
@@ -87,7 +118,9 @@ theorem sub_spec (a b : Array U64 5#usize)
     (ha : ∀ i < 5, a[i]!.val < 2 ^ 52)
     (hb : ∀ i < 5, b[i]!.val < 2 ^ 52) :
     ∃ result, sub a b = ok result ∧
-    Scalar52_as_Nat result + Scalar52_as_Nat b ≡ Scalar52_as_Nat a [MOD L] := by
+    Scalar52_as_Nat result + Scalar52_as_Nat b ≡ Scalar52_as_Nat a [MOD L] ∧
+    (∀ i < 5, result[i]!.val < 2 ^ 52)
+     := by
   unfold sub
   -- progress*
 

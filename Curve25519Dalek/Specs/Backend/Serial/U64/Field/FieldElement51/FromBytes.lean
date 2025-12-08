@@ -12,7 +12,6 @@ Source: curve25519-dalek/src/backend/serial/u64/field.rs
 
 -/
 set_option linter.style.induction false
-set_option maxHeartbeats 100000000000
 
 namespace curve25519_dalek.backend.serial.u64.field.FieldElement51
 open Aeneas.Std Result
@@ -26,14 +25,17 @@ Specification:
 - Returns the 64-bit value formed by bytes[i..i+8] in little-endian order
 -/
 
-theorem byte_testBit_of_ge (j : Nat) (hj : 8 ≤ j) (byte : U8) : (byte.val.testBit j) = false := by
+lemma u8_testBit_eq_false_of_le (j : Nat) (hj : 8 ≤ j) (byte : U8) : (byte.val.testBit j) = false := by
   apply Nat.testBit_lt_two_pow
   calc byte.val < 2 ^ 8 := by scalar_tac
     _ ≤ 2^j := by apply Nat.pow_le_pow_right (by omega); omega
 
-theorem U8_shiftLeft_lt {n : Nat} (hn : n ≤ 56) (byte : U8) : byte.val <<< n < U64.size := by
+lemma u8_shiftLeft_lt_u64_size {n : Nat} (hn : n ≤ 56) (byte : U8) : byte.val <<< n < U64.size := by
   interval_cases n
   all_goals scalar_tac
+
+set_option maxHeartbeats 100000000000 in
+-- simp_all heavy
 
 -- TODO: this proof is long and repetitive; refactor.
 /-- **Bit-level spec for `backend.serial.u64.field.FieldElement51.from_bytes.load8_at`**:
@@ -43,8 +45,9 @@ Specification phrased in terms of individual bits:
 - This captures the little-endian byte ordering where lower-indexed bytes contribute to lower bits
 -/
 
+
 @[progress]
-theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
+theorem load8_at_testBit (input : Slice U8) (i : Usize)
     (h : i.val + 8 ≤ input.val.length) :
     ∃ result, from_bytes.load8_at input i = ok result ∧
     ∀ (j : Nat), j < 64 →
@@ -57,17 +60,17 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
       j / 8 = 4 ∨ j / 8 = 5 ∨ j / 8 = 6 ∨ j / 8 = 7 := by omega
   · rw [hc]
     have : j < 8 := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j by omega]
     all_goals grind
   · rw [hc]
     have : j < 16 := by omega
     have : 8 ≤ j := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j - 8 by omega]
-    repeat rw [byte_testBit_of_ge _ (by grind)]
+    repeat rw [u8_testBit_eq_false_of_le _ (by grind)]
     simp only [ge_iff_le]
     rw [show decide (16 ≤ j) = false by rw [decide_eq_false_iff_not]; omega]
     rw [show decide (24 ≤ j) = false by rw [decide_eq_false_iff_not]; omega]
@@ -79,10 +82,10 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
   · rw [hc]
     have : j < 24 := by omega
     have : 16 ≤ j := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j - 16 by omega]
-    repeat rw [byte_testBit_of_ge _ (by grind)]
+    repeat rw [u8_testBit_eq_false_of_le _ (by grind)]
     simp only [ge_iff_le]
     rw [show decide (8 ≤ j) by grind]
     rw [show decide (16 ≤ j) by grind]
@@ -95,10 +98,10 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
   · rw [hc]
     have : j < 32 := by omega
     have : 24 ≤ j := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j - 24 by omega]
-    repeat rw [byte_testBit_of_ge _ (by grind)]
+    repeat rw [u8_testBit_eq_false_of_le _ (by grind)]
     simp only [ge_iff_le]
     rw [show decide (8 ≤ j) by grind]
     rw [show decide (16 ≤ j) by grind]
@@ -111,10 +114,10 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
   · rw [hc]
     have : j < 40 := by omega
     have : 32 ≤ j := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j - 32 by omega]
-    repeat rw [byte_testBit_of_ge _ (by grind)]
+    repeat rw [u8_testBit_eq_false_of_le _ (by grind)]
     simp only [ge_iff_le]
     rw [show decide (8 ≤ j) by grind]
     rw [show decide (16 ≤ j) by grind]
@@ -127,10 +130,10 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
   · rw [hc]
     have : j < 48 := by omega
     have : 40 ≤ j := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j - 40 by omega]
-    repeat rw [byte_testBit_of_ge _ (by grind)]
+    repeat rw [u8_testBit_eq_false_of_le _ (by grind)]
     simp only [ge_iff_le]
     rw [show decide (8 ≤ j) by grind]
     rw [show decide (16 ≤ j) by grind]
@@ -143,10 +146,10 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
   · rw [hc]
     have : j < 56 := by omega
     have : 48 ≤ j := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j - 48 by omega]
-    repeat rw [byte_testBit_of_ge _ (by grind)]
+    repeat rw [u8_testBit_eq_false_of_le _ (by grind)]
     simp only [ge_iff_le]
     rw [show decide (8 ≤ j) by grind]
     rw [show decide (16 ≤ j) by grind]
@@ -159,10 +162,10 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
   · rw [hc]
     have : j < 64 := by omega
     have : 56 ≤ j := by omega
-    repeat rw [Nat.mod_eq_of_lt (U8_shiftLeft_lt (by grind) _)]
+    repeat rw [Nat.mod_eq_of_lt (u8_shiftLeft_lt_u64_size (by grind) _)]
     repeat rw [Nat.testBit_shiftLeft]
     rw [show j % 8 = j - 56 by omega]
-    repeat rw [byte_testBit_of_ge _ (by grind)]
+    repeat rw [u8_testBit_eq_false_of_le _ (by grind)]
     simp only [ge_iff_le]
     rw [show decide (8 ≤ j) by grind]
     rw [show decide (16 ≤ j) by grind]
@@ -173,7 +176,7 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
     rw [show decide (56 ≤ j) by grind]
     all_goals grind
 
-theorem land_pow_two_sub_one_eq_mod (a n : Nat) :
+lemma land_pow_two_sub_one_eq_mod (a n : Nat) :
     a &&& (2^n - 1) = a % 2^n := by
   induction n generalizing a
   · simp
@@ -195,7 +198,7 @@ Specification:
   of the bytes with the high bit (bit 255) cleared
 -/
 
-lemma eq_of_testBit_eq (n m : ℕ)
+lemma eq_of_testBit_eq_on_lt8 (n m : ℕ)
   (h : ∀ i < 8, n.testBit i = m.testBit i)
   (hbound_n : n < 2 ^ 8)
   (hbound_m : m < 2 ^ 8) : n = m :=
@@ -213,7 +216,7 @@ by
     have := Nat.testBit_eq_false_of_lt this
     simp_all
 
-lemma ofNat64_or (a b : Nat) :
+lemma bitvec_ofNat64_or (a b : Nat) :
   BitVec.ofNat 64 (a ||| b)
     = BitVec.ofNat 64 a ||| BitVec.ofNat 64 b := by
   ext i
@@ -223,7 +226,7 @@ lemma ofNat64_or (a b : Nat) :
   rw[this]
   apply Nat.testBit_or
 
-theorem powTwo_split_block_remain {z n m k r : ℕ} (hmn : (k + 1) * n + r < m) :
+lemma two_pow_split_block_remain {z n m k r : ℕ} (hmn : (k + 1) * n + r < m) :
   z % 2 ^ (k * n + r)
   + 2 ^ (k * n+r) * ((z % 2 ^ m) >>> (k * n+r) % 2 ^ n)
   = z % 2^ ( (k+1) * n+r) := by
@@ -266,11 +269,11 @@ theorem powTwo_split_block_remain {z n m k r : ℕ} (hmn : (k + 1) * n + r < m) 
     simp [this, pow_add]
   rw[this, h2]
 
-theorem powTwo_split_block {z n m k : ℕ} (hmn : (k + 1) * n < m) :
+lemma two_pow_split_block {z n m k : ℕ} (hmn : (k + 1) * n < m) :
   z % 2 ^ (k * n) + 2 ^ (k * n) * ((z % 2 ^ m) >>> (k * n) % 2 ^ n) = z % 2^ ( (k+1) * n) := by
-  exact @powTwo_split_block_remain _ _ _ _ 0 (by simp[hmn])
+  exact @two_pow_split_block_remain _ _ _ _ 0 (by simp[hmn])
 
-theorem powTwo_8_block_split {n m : ℕ} (z : Nat) (hmn : 8 * n < m) :
+lemma two_pow_eight_block_split {n m : ℕ} (z : Nat) (hmn : 8 * n < m) :
   z % 2 ^ n
   + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n)
   + 2 ^ (2*n) * ((z % 2 ^ m) >>> (2*n) % 2 ^ n)
@@ -282,71 +285,71 @@ theorem powTwo_8_block_split {n m : ℕ} (z : Nat) (hmn : 8 * n < m) :
   = z % 2 ^ (8 * n) := by
   have : 2 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 1 (by simp[this])
+  have := @two_pow_split_block z n m 1 (by simp[this])
   simp at this
   rw[this]
   have : 3 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 2 (by simp[this])
+  have := @two_pow_split_block z n m 2 (by simp[this])
   simp at this
   rw[this]
   have : 4 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 3 (by simp[this])
+  have := @two_pow_split_block z n m 3 (by simp[this])
   simp at this
   rw[this]
   have : 5 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 4 (by simp[this])
+  have := @two_pow_split_block z n m 4 (by simp[this])
   simp at this
   rw[this]
   have : 6 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 5 (by simp[this])
+  have := @two_pow_split_block z n m 5 (by simp[this])
   simp at this
   rw[this]
   have : 7 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 6 (by simp[this])
+  have := @two_pow_split_block z n m 6 (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block z n m 7 (by simp[hmn])
+  have := @two_pow_split_block z n m 7 (by simp[hmn])
   simp at this
   apply this
 
-theorem powTwo_six_block_split {n m : ℕ} (z : Nat) (hmn : 6 * n < m) :
-  z % 2 ^ n --0
-  + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n) --8
-  + 2 ^ (2*n) * ((z % 2 ^ m) >>> (2*n) % 2 ^ n) --16
-  + 2 ^ (3*n) * ((z % 2 ^ m) >>>(3 * n) % 2 ^ n) --24
-  + 2 ^ (4*n) * ((z % 2 ^ m) >>>( 4 * n) % 2 ^ n) --32
-  + 2 ^ (5*n) * ((z % 2 ^ m) >>> (5 *n) % 2 ^ n) --40
+lemma two_pow_six_block_split {n m : ℕ} (z : Nat) (hmn : 6 * n < m) :
+  z % 2 ^ n
+  + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n)
+  + 2 ^ (2*n) * ((z % 2 ^ m) >>> (2*n) % 2 ^ n)
+  + 2 ^ (3*n) * ((z % 2 ^ m) >>>(3 * n) % 2 ^ n)
+  + 2 ^ (4*n) * ((z % 2 ^ m) >>>( 4 * n) % 2 ^ n)
+  + 2 ^ (5*n) * ((z % 2 ^ m) >>> (5 *n) % 2 ^ n)
   = z % 2 ^ (6 * n) := by
   have : 2 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 1 (by simp[this])
+  have := @two_pow_split_block z n m 1 (by simp[this])
   simp at this
   rw[this]
   have : 3 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 2 (by simp[this])
+  have := @two_pow_split_block z n m 2 (by simp[this])
   simp at this
   rw[this]
   have : 4 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 3 (by simp[this])
+  have := @two_pow_split_block z n m 3 (by simp[this])
   simp at this
   rw[this]
   have : 5 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 4 (by simp[this])
+  have := @two_pow_split_block z n m 4 (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block z n m 5 (by simp[hmn])
+  have := @two_pow_split_block z n m 5 (by simp[hmn])
   simp at this
   apply this
 
-theorem powTwo_seven_block_split {n m : ℕ} (z : Nat) (hmn : 7 * n < m) :
+lemma two_pow_seven_block_split {n m : ℕ} (z : Nat) (hmn : 7 * n < m) :
   z % 2 ^ n
   + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n)
   + 2 ^ (2*n) * ((z % 2 ^ m) >>> (2*n) % 2 ^ n)
@@ -357,34 +360,34 @@ theorem powTwo_seven_block_split {n m : ℕ} (z : Nat) (hmn : 7 * n < m) :
   = z % 2 ^ (7 * n) := by
   have : 2 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 1 (by simp[this])
+  have := @two_pow_split_block z n m 1 (by simp[this])
   simp at this
   rw[this]
   have : 3 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 2 (by simp[this])
+  have := @two_pow_split_block z n m 2 (by simp[this])
   simp at this
   rw[this]
   have : 4 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 3 (by simp[this])
+  have := @two_pow_split_block z n m 3 (by simp[this])
   simp at this
   rw[this]
   have : 5 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 4 (by simp[this])
+  have := @two_pow_split_block z n m 4 (by simp[this])
   simp at this
   rw[this]
   have : 6 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 5 (by simp[this])
+  have := @two_pow_split_block z n m 5 (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block z n m 6 (by simp[hmn])
+  have := @two_pow_split_block z n m 6 (by simp[hmn])
   simp at this
   apply this
 
-theorem powTwo_five_block_split {n m : ℕ} (z : Nat) (hmn : 5 * n < m) :
+lemma two_pow_five_block_split {n m : ℕ} (z : Nat) (hmn : 5 * n < m) :
   z % 2 ^ n
   + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n)
   + 2 ^ (2*n) * ((z % 2 ^ m) >>> (2*n) % 2 ^ n)
@@ -393,46 +396,46 @@ theorem powTwo_five_block_split {n m : ℕ} (z : Nat) (hmn : 5 * n < m) :
   = z % 2 ^ (5 * n) := by
   have : 2 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 1 (by simp[this])
+  have := @two_pow_split_block z n m 1 (by simp[this])
   simp at this
   rw[this]
   have : 3 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 2 (by simp[this])
+  have := @two_pow_split_block z n m 2 (by simp[this])
   simp at this
   rw[this]
   have : 4 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 3 (by simp[this])
+  have := @two_pow_split_block z n m 3 (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block z n m 4 (by simp[hmn])
+  have := @two_pow_split_block z n m 4 (by simp[hmn])
   simp at this
   apply this
 
-theorem powTwo_three_block_split {n m : ℕ} (z : Nat) (hmn : 3 * n < m) :
+lemma two_pow_three_block_split {n m : ℕ} (z : Nat) (hmn : 3 * n < m) :
   z % 2 ^ n
   + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n)
   + 2 ^ (2*n) * ((z % 2 ^ m) >>> (2*n) % 2 ^ n)
   = z % 2 ^ (3 * n) := by
   have : 2 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 1 (by simp[this])
+  have := @two_pow_split_block z n m 1 (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block z n m 2 (by simp[hmn])
+  have := @two_pow_split_block z n m 2 (by simp[hmn])
   simp at this
   apply this
 
-theorem powTwo_two_block_split {n m : ℕ} (z : Nat) (hmn : 2 * n < m) :
+lemma two_pow_two_block_split {n m : ℕ} (z : Nat) (hmn : 2 * n < m) :
   z % 2 ^ n
   + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n)
   = z % 2 ^ (2 * n) := by
-  have := @powTwo_split_block z n m 1 (by simp[hmn])
+  have := @two_pow_split_block z n m 1 (by simp[hmn])
   simp at this
   apply this
 
-theorem powTwo_four_block_split {n m : ℕ} (z : Nat) (hmn : 4 * n < m) :
+lemma two_pow_four_block_split {n m : ℕ} (z : Nat) (hmn : 4 * n < m) :
   z % 2 ^ n
   + 2 ^ n * ((z % 2 ^ m) >>> n % 2 ^ n)
   + 2 ^ (2*n) * ((z % 2 ^ m) >>> (2*n) % 2 ^ n)
@@ -440,32 +443,32 @@ theorem powTwo_four_block_split {n m : ℕ} (z : Nat) (hmn : 4 * n < m) :
   = z % 2 ^ (4 * n) := by
   have : 2 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 1 (by simp[this])
+  have := @two_pow_split_block z n m 1 (by simp[this])
   simp at this
   rw[this]
   have : 3 * n < m := by
     scalar_tac
-  have := @powTwo_split_block z n m 2 (by simp[this])
+  have := @two_pow_split_block z n m 2 (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block z n m 3 (by simp[hmn])
+  have := @two_pow_split_block z n m 3 (by simp[hmn])
   simp at this
   apply this
 
-theorem powTwo_block_split_51 (z : ℕ) :
-  z % 2 ^ 8 --0
-  + 2 ^ 8 * ((z % 2 ^ 51)  >>> 8 % 2 ^ 8) --8
-  + 2 ^ 16 * ((z % 2 ^ 51)  >>> 16 % 2 ^ 8) --16
-  + 2 ^ 24 * ((z % 2 ^ 51)   >>> 24 % 2 ^ 8) --24
-  + 2 ^ 32 * ((z % 2 ^ 51)   >>> 32 % 2 ^ 8) --32
-  + 2 ^ 40 * ((z % 2 ^ 51)   >>> 40 % 2 ^ 8) --40
+lemma two_pow_block_split_51 (z : ℕ) :
+  z % 2 ^ 8
+  + 2 ^ 8 * ((z % 2 ^ 51)  >>> 8 % 2 ^ 8)
+  + 2 ^ 16 * ((z % 2 ^ 51)  >>> 16 % 2 ^ 8)
+  + 2 ^ 24 * ((z % 2 ^ 51)   >>> 24 % 2 ^ 8)
+  + 2 ^ 32 * ((z % 2 ^ 51)   >>> 32 % 2 ^ 8)
+  + 2 ^ 40 * ((z % 2 ^ 51)   >>> 40 % 2 ^ 8)
   + 2 ^ 48 * (
         ((z % 2 ^ 51)   >>> 48) % 2
         + 2* (((z % 2 ^ 51)   >>> 48) >>> 1 % 2)
         + 2 ^2 * (((z % 2 ^ 51)   >>> 48) >>> 2 % 2)
         )
   = z % 2^ 51 := by
-  have := powTwo_six_block_split z (by simp : 6 * 8 < 51)
+  have := two_pow_six_block_split z (by simp : 6 * 8 < 51)
   rw [this]
   have mod51: ((z % 2 ^ 51)   >>> 48) % 2^51 = (z % 2 ^ 51)   >>> 48 := by
     apply Nat.mod_eq_of_lt
@@ -473,7 +476,7 @@ theorem powTwo_block_split_51 (z : ℕ) :
     apply Nat.div_lt_of_lt_mul
     apply lt_trans (Nat.mod_lt z (by simp))
     simp
-  have := powTwo_three_block_split ((z % 2 ^ 51)   >>> 48) (by simp : 3 * 1 < 51)
+  have := two_pow_three_block_split ((z % 2 ^ 51)   >>> 48) (by simp : 3 * 1 < 51)
   rw [mod51] at this
   simp at this
   simp [this]
@@ -487,7 +490,7 @@ theorem powTwo_block_split_51 (z : ℕ) :
   simp [add_comm] at this
   simp [this]
 
-theorem powTwo_split_block_5 {n m r : ℕ} (z : ℕ) (hmn : 5 * n + r < m) :
+lemma two_pow_split_block_5 {n m r : ℕ} (z : ℕ) (hmn : 5 * n + r < m) :
   z % 2 ^ (r)
   + 2 ^ (r) * ((z % 2 ^ m) >>> (r) % 2 ^ n)
   + 2 ^ (1 * n+r) * ((z % 2 ^ m) >>> (1 * n+r) % 2 ^ n)
@@ -497,29 +500,29 @@ theorem powTwo_split_block_5 {n m r : ℕ} (z : ℕ) (hmn : 5 * n + r < m) :
   = z % 2^ (5 * n+r) := by
   have : n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 0 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 0 r (by simp[this])
   simp at this
   simp[this]
   have : 2*n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 1 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 1 r (by simp[this])
   simp at this
   rw[this]
   have : 3*n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 2 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 2 r (by simp[this])
   simp at this
   rw[this]
   have : 4*n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 3 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 3 r (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block_remain z n m 4 r (by simp[hmn])
+  have := @two_pow_split_block_remain z n m 4 r (by simp[hmn])
   simp at this
   rw[this]
 
-theorem powTwo_block_split_51_remain5 (z : ℕ) :
+lemma two_pow_block_split_51_remain5 (z : ℕ) :
   z % 2 ^ 5
   + 2 ^ 5 * ((z % 2 ^ 51)  >>> 5 % 2 ^ 8)
   + 2 ^ 13 * ((z % 2 ^ 51)  >>> 13 % 2 ^ 8)
@@ -535,7 +538,7 @@ theorem powTwo_block_split_51_remain5 (z : ℕ) :
         + 2 ^5 * (((z % 2 ^ 51)   >>> 45) >>> 5 % 2)
         )
   = z % 2^ 51 := by
-  have := powTwo_split_block_5 z (by simp : 5 * 8 + 5 < 51)
+  have := two_pow_split_block_5 z (by simp : 5 * 8 + 5 < 51)
   rw[this]
   have mod51: ((z % 2 ^ 51)   >>> 45) % 2^51 = (z % 2 ^ 51)   >>> 45 := by
     apply Nat.mod_eq_of_lt
@@ -543,7 +546,7 @@ theorem powTwo_block_split_51_remain5 (z : ℕ) :
     apply Nat.div_lt_of_lt_mul
     apply lt_trans (Nat.mod_lt z (by simp))
     simp
-  have := powTwo_six_block_split ((z % 2 ^ 51)   >>> 45) (by simp : 6 * 1 < 51)
+  have := two_pow_six_block_split ((z % 2 ^ 51)   >>> 45) (by simp : 6 * 1 < 51)
   rw[mod51] at this
   simp at this
   simp[this]
@@ -557,7 +560,7 @@ theorem powTwo_block_split_51_remain5 (z : ℕ) :
   simp[add_comm] at this
   simp[this]
 
-theorem powTwo_split_block_6 {n m r : ℕ} (z : ℕ) (hmn : 6 * n + r < m) :
+lemma two_pow_split_block_6 {n m r : ℕ} (z : ℕ) (hmn : 6 * n + r < m) :
   z % 2 ^ (r)
   + 2 ^ (r) * ((z % 2 ^ m) >>> (r) % 2 ^ n)
   + 2 ^ (1 * n+r) * ((z % 2 ^ m) >>> (1 * n+r) % 2 ^ n)
@@ -568,34 +571,34 @@ theorem powTwo_split_block_6 {n m r : ℕ} (z : ℕ) (hmn : 6 * n + r < m) :
   = z % 2^ (6 * n+r) := by
   have : n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 0 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 0 r (by simp[this])
   simp at this
   simp[this]
   have : 2*n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 1 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 1 r (by simp[this])
   simp at this
   rw[this]
   have : 3*n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 2 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 2 r (by simp[this])
   simp at this
   rw[this]
   have : 4*n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 3 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 3 r (by simp[this])
   simp at this
   rw[this]
   have : 5*n +r < m := by
     scalar_tac
-  have := @powTwo_split_block_remain z n m 4 r (by simp[this])
+  have := @two_pow_split_block_remain z n m 4 r (by simp[this])
   simp at this
   rw[this]
-  have := @powTwo_split_block_remain z n m 5 r (by simp[hmn])
+  have := @two_pow_split_block_remain z n m 5 r (by simp[hmn])
   simp at this
   rw[this]
 
-theorem powTwo_block_split_51_remain2 (z : ℕ) :
+lemma two_pow_block_split_51_remain2 (z : ℕ) :
   z % 2 ^ 2
   + 2 ^ 2 * ((z % 2 ^ 51)  >>> 2 % 2 ^ 8)
   + 2 ^ 10 * ((z % 2 ^ 51)  >>> 10 % 2 ^ 8)
@@ -605,7 +608,7 @@ theorem powTwo_block_split_51_remain2 (z : ℕ) :
   + 2 ^ 42 * ((z % 2 ^ 51)   >>> 42 % 2 ^ 8)
   + 2 ^ 50 * ( ((z % 2 ^ 51)   >>> 50) % 2)
   = z % 2^ 51 := by
-  have := powTwo_split_block_6 z (by simp : 6 * 8 + 2 < 51)
+  have := two_pow_split_block_6 z (by simp : 6 * 8 + 2 < 51)
   rw[this]
   have mod51: ((z % 2 ^ 51)   >>> 50) % 2^51 = (z % 2 ^ 51)   >>> 50 := by
     apply Nat.mod_eq_of_lt
@@ -623,7 +626,7 @@ theorem powTwo_block_split_51_remain2 (z : ℕ) :
   simp[add_comm] at this
   simp[this]
 
-theorem powTwo_block_split_51_remain7 (z : ℕ) :
+lemma two_pow_block_split_51_remain7 (z : ℕ) :
   z % 2^7
     + 2^7  * ((z % 2^51) >>> 7  % 2^8)
     + 2^15 * ((z % 2^51) >>> 15 % 2^8)
@@ -637,7 +640,7 @@ theorem powTwo_block_split_51_remain7 (z : ℕ) :
         + 2^3  * (((z % 2^51) >>> 47) >>> 3 % 2)
         )
     = z % 2^51 := by
-  have := powTwo_split_block_5 z (by simp : 5 * 8 + 7 < 51)
+  have := two_pow_split_block_5 z (by simp : 5 * 8 + 7 < 51)
   rw [this]
   have mod51 :
       ((z % 2^51) >>> 47) % 2^51 = (z % 2^51) >>> 47 := by
@@ -646,7 +649,7 @@ theorem powTwo_block_split_51_remain7 (z : ℕ) :
     apply Nat.div_lt_of_lt_mul
     apply lt_trans (Nat.mod_lt z (by simp))
     simp
-  have := powTwo_four_block_split ((z % 2^51) >>> 47) (by simp : 4 * 1 < 51)
+  have := two_pow_four_block_split ((z % 2^51) >>> 47) (by simp : 4 * 1 < 51)
   rw [mod51] at this
   simp at this
   simp [this]
@@ -662,7 +665,7 @@ theorem powTwo_block_split_51_remain7 (z : ℕ) :
   simp [add_comm] at this
   simp [this]
 
-theorem powTwo_block_split_51_remain4 (z : ℕ) :
+lemma two_pow_block_split_51_remain4 (z : ℕ) :
   z % 2^4
     + 2^4  * ((z % 2^51) >>> 4  % 2^8)
     + 2^12 * ((z % 2^51) >>> 12 % 2^8)
@@ -679,7 +682,7 @@ theorem powTwo_block_split_51_remain4 (z : ℕ) :
         + 2^6  * (((z % 2^51) >>> 44) >>> 6 % 2)
         )
     = z % 2^51 := by
-  have := powTwo_split_block_5 z (by simp : 5 * 8 + 4 < 51)
+  have := two_pow_split_block_5 z (by simp : 5 * 8 + 4 < 51)
   rw [this]
   have mod51 :
       ((z % 2^51) >>> 44) % 2^51 = (z % 2^51) >>> 44 := by
@@ -688,7 +691,7 @@ theorem powTwo_block_split_51_remain4 (z : ℕ) :
     apply Nat.div_lt_of_lt_mul
     apply lt_trans (Nat.mod_lt z (by simp))
     simp
-  have := powTwo_seven_block_split ((z % 2^51) >>> 44) (by simp : 7 * 1 < 51)
+  have := two_pow_seven_block_split ((z % 2^51) >>> 44) (by simp : 7 * 1 < 51)
   rw [mod51] at this
   simp at this
   simp [this]
@@ -704,7 +707,7 @@ theorem powTwo_block_split_51_remain4 (z : ℕ) :
   simp [add_comm] at this
   simp [this]
 
-lemma bytes_mod255 (bytes : Array U8 32#usize) :(U8x32_as_Nat bytes % 2^255) =
+lemma bytes_mod_two_pow_255 (bytes : Array U8 32#usize) :(U8x32_as_Nat bytes % 2^255) =
  ( ∑ i ∈ Finset.range 31, 2^(8 * i) * (bytes[i]!).val
  + 2^(8 * 31) * ( (bytes.val[31].val)%2
  + 2 ^ 1 * ((bytes.val[31].val >>> 1)%2)
@@ -716,7 +719,7 @@ lemma bytes_mod255 (bytes : Array U8 32#usize) :(U8x32_as_Nat bytes % 2^255) =
   have mod8:  (bytes.val[31]).val % 2^8 = (bytes.val[31]).val := by
    apply  Nat.mod_eq_of_lt
    scalar_tac
-  have := @powTwo_seven_block_split 1 8 (bytes.val[31].val) (by simp)
+  have := @two_pow_seven_block_split 1 8 (bytes.val[31].val) (by simp)
   rw [mod8] at this
   simp at this
   simp [this]
@@ -728,7 +731,7 @@ lemma bytes_mod255 (bytes : Array U8 32#usize) :(U8x32_as_Nat bytes % 2^255) =
   simp [mul_add]
   simp [← mul_assoc]
 
-lemma bytes_lt (n : Nat) (bytes : Array U8 32#usize) :
+lemma bytes_sum_lt_two_pow_mul8 (n : Nat) (bytes : Array U8 32#usize) :
   ∑ i ∈ Finset.range n, 2^(8 * i) * (bytes[i]!).val < 2^(8 * n) := by
   induction' n with n hn
   · simp
@@ -748,7 +751,7 @@ lemma bytes_lt (n : Nat) (bytes : Array U8 32#usize) :
     rw [eq1] at h
     exact h
 
-lemma bytes_mod_lt (bytes : Array U8 32#usize) :
+lemma bytes_mod_part_lt_two_pow_255 (bytes : Array U8 32#usize) :
   ( ∑ i ∈ Finset.range 31, 2^(8 * i) * (bytes[i]!).val
   + 2^(8 * 31) *
       (  (bytes.val[31].val % 2)
@@ -762,11 +765,11 @@ lemma bytes_mod_lt (bytes : Array U8 32#usize) :
       (bytes.val[31]).val % 2^8 = (bytes.val[31]).val := by
     apply Nat.mod_eq_of_lt
     scalar_tac
-  have := @powTwo_seven_block_split 1 8 (bytes.val[31].val) (by simp)
+  have := @two_pow_seven_block_split 1 8 (bytes.val[31].val) (by simp)
   rw [mod8] at this
   simp at this
   simp [this]
-  have sum := bytes_lt 31 bytes
+  have sum := bytes_sum_lt_two_pow_mul8 31 bytes
   have := Nat.mod_lt (bytes.val[31]!).val (by simp : 0 < 128)
   have := Nat.le_pred_of_lt this
   have := Nat.mul_le_mul_left (2 ^ (8 * 31)) this
@@ -775,7 +778,7 @@ lemma bytes_mod_lt (bytes : Array U8 32#usize) :
   apply Nat.lt_of_le_of_lt this
   simp
 
-lemma bytes_mod255_eq
+lemma bytes_mod_two_pow_255_eq_sum
     (bytes : Array U8 32#usize) :
     U8x32_as_Nat bytes % 2^255 =
       (∑ i ∈ Finset.range 31, 2^(8 * i) * (bytes[i]!).val)
@@ -787,17 +790,20 @@ lemma bytes_mod255_eq
         + 2^4 * ((bytes.val[31].val >>> 4) % 2)
         + 2^5 * ((bytes.val[31].val >>> 5) % 2)
         + 2^6 * ((bytes.val[31].val >>> 6) % 2)) := by
-  rw [bytes_mod255]
+  rw [bytes_mod_two_pow_255]
   apply Nat.mod_eq_of_lt
-  apply bytes_mod_lt
+  apply bytes_mod_part_lt_two_pow_255
 
+
+set_option maxHeartbeats 100000000000 in
+-- simp_all heavy
 @[progress]
 theorem from_bytes_spec (bytes : Array U8 32#usize) :
     ∃ result, from_bytes bytes = ok result ∧
     Field51_as_Nat result ≡ (U8x32_as_Nat bytes % 2^255) [MOD p] := by
   unfold from_bytes
   progress*
-  rw[bytes_mod255_eq]
+  rw[bytes_mod_two_pow_255_eq_sum]
   simp_all[Field51_as_Nat, Finset.sum_range_succ,Array.make, U64.size, U64.numBits,]
   have := land_pow_two_sub_one_eq_mod i1 51
   simp at this
@@ -807,7 +813,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
   have := land_pow_two_sub_one_eq_mod i10 51
   have := land_pow_two_sub_one_eq_mod i13 51
   simp_all[]
-  have eqb6:= @powTwo_8_block_split 1 51 (bytes.val[6]).val (by simp)
+  have eqb6:= @two_pow_eight_block_split 1 51 (bytes.val[6]).val (by simp)
   have :  (bytes.val[6]).val < 2^(8 *1) := by scalar_tac
   have := Nat.mod_eq_of_lt this
   rw[this] at eqb6
@@ -817,7 +823,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
   rw[← eqb6]
   iterate  4 (clear this)
   clear eqb6
-  have eqb12:= @powTwo_8_block_split 1 51 (bytes.val[12]).val (by simp)
+  have eqb12:= @two_pow_eight_block_split 1 51 (bytes.val[12]).val (by simp)
   have :  (bytes.val[12]).val < 2^(8 *1) := by scalar_tac
   have := Nat.mod_eq_of_lt this
   rw[this] at eqb12
@@ -827,7 +833,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
   rw[← eqb12]
   iterate  4 (clear this)
   clear eqb12
-  have eqb19:= @powTwo_8_block_split 1 51 (bytes.val[19]).val (by simp)
+  have eqb19:= @two_pow_eight_block_split 1 51 (bytes.val[19]).val (by simp)
   have :  (bytes.val[19]).val < 2^(8 *1) := by scalar_tac
   have := Nat.mod_eq_of_lt this
   rw[this] at eqb19
@@ -837,7 +843,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
   rw[← eqb19]
   iterate  4 (clear this)
   clear eqb19
-  have eqb25:= @powTwo_8_block_split 1 51 (bytes.val[25]).val (by simp)
+  have eqb25:= @two_pow_eight_block_split 1 51 (bytes.val[25]).val (by simp)
   have :  (bytes.val[25]).val < 2^(8 *1) := by scalar_tac
   have := Nat.mod_eq_of_lt this
   rw[this] at eqb25
@@ -848,7 +854,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
   iterate  4 (clear this)
   clear eqb25
   have eq0: i1.val % 2 ^ 8 = (bytes.val[0]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have : i< 64:= by apply lt_trans hi (by simp)
      have := i1_post i this
@@ -861,7 +867,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq1: (i1.val % 2^ 51) >>> 8 % 2 ^ 8 = (bytes.val[1]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 8
      have : 8+i< 64:= by apply lt_trans this (by simp)
@@ -880,7 +886,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq2: ((i1.val % 2^51) >>> 16) % 2 ^ 8 = (bytes.val[2]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 16
      have : 16+i< 64:= by apply lt_trans this (by simp)
@@ -899,7 +905,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq3: ((i1.val % 2^51) >>> 24) % 2 ^ 8 = (bytes.val[3]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 24
      have : 24+i< 64:= by apply lt_trans this (by simp)
@@ -918,7 +924,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq4: ((i1.val % 2^51) >>> 32) % 2 ^ 8 = (bytes.val[4]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 32
      have : 32 + i< 64:= by apply lt_trans this (by simp)
@@ -937,7 +943,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq5: ((i1.val % 2^51) >>> 40) % 2 ^ 8 = (bytes.val[5]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 40
      have : 40 + i< 64:= by apply lt_trans this (by simp)
@@ -973,7 +979,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := i1_post 50 (by simp)
      have := Nat.testBit_mod_two_pow (i1.val) 51 50
      simp_all
-  have eqi1:= powTwo_block_split_51 i1.val
+  have eqi1:= two_pow_block_split_51 i1.val
   rw[eq0, eq1, eq2, eq3, eq4, eq5, eq60, eq61, eq62] at eqi1
   simp at eqi1
   rw[← eqi1]
@@ -1008,18 +1014,18 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := i3_post 6 (by simp)
      have mod_pow1:= Nat.testBit_mod_two_pow (i3.val  >>> 3) 51 3
      simp at mod_pow1
-     have := Nat.toNat_testBit (((i3.val >>>3) % 2^51)   >>>3) 0
+     have := Nat.toNat_testBit (((i3.val >>>3) % 2 ^ 51)   >>>3) 0
      have := Nat.toNat_testBit ((bytes.val[6].val)>>>6) 0
      simp_all
   have eq67: (((i3.val >>>3) % 2 ^51)   >>> 4 )% 2 ^1 = ((bytes.val[6].val)>>> 7)%2 := by
      have := i3_post 7 (by simp)
      have mod_pow1:= Nat.testBit_mod_two_pow (i3.val  >>> 3) 51 4
      simp at mod_pow1
-     have := Nat.toNat_testBit (((i3.val >>>3) % 2^51)   >>> 4) 0
+     have := Nat.toNat_testBit (((i3.val >>>3) % 2 ^51)   >>> 4) 0
      have := Nat.toNat_testBit ((bytes.val[6].val)>>> 7) 0
      simp_all
   have eq1: ((i3.val >>>3) % 2^ 51) >>> 5 % 2 ^ 8 = (bytes.val[7]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 8
      have : 8+i< 64:= by apply lt_trans this (by simp)
@@ -1038,7 +1044,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq2: ((i3.val >>>3) % 2^ 51) >>> 13 % 2 ^ 8 = (bytes.val[8]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 16
      have : 16+i< 64:= by apply lt_trans this (by simp)
@@ -1057,7 +1063,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq3: ((i3.val >>>3) % 2^ 51) >>> 21 % 2 ^ 8 = (bytes.val[9]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 24
      have : 24+i< 64:= by apply lt_trans this (by simp)
@@ -1076,7 +1082,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq4: ((i3.val >>>3) % 2^ 51) >>> 29 % 2 ^ 8 = (bytes.val[10]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 32
      have : 32+i< 64:= by apply lt_trans this (by simp)
@@ -1095,7 +1101,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq5: ((i3.val >>>3) % 2^ 51) >>> 37 % 2 ^ 8 = (bytes.val[11]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 40
      have : 40+i< 64:= by apply lt_trans this (by simp)
@@ -1149,8 +1155,8 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := i3_post 46 (by simp)
      have := Nat.testBit_mod_two_pow (i3.val >>>3) 51 50
      simp_all
-  have eqi3:= powTwo_block_split_51_remain5  (i3.val >>>3)
-  have := @powTwo_five_block_split 1 51 (i3.val >>> 3) (by simp)
+  have eqi3:= two_pow_block_split_51_remain5  (i3.val >>>3)
+  have := @two_pow_five_block_split 1 51 (i3.val >>> 3) (by simp)
   rw[eq1, eq2, eq3, eq4, eq5, ← this] at eqi3
   rw[eq63, eq64, eq65, eq66, eq67] at eqi3
   rw[eq120, eq121, eq122, eq123, eq124, eq125] at eqi3
@@ -1170,7 +1176,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := Nat.toNat_testBit ((bytes.val[12].val)>>>7) 0
      simp_all
   have eq1: ((i6.val >>>6) % 2^ 51) >>> 2 % 2 ^ 8 = (bytes.val[13]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 8
      have : 8+i< 64:= by apply lt_trans this (by simp)
@@ -1189,7 +1195,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq2: ((i6.val >>>6) % 2^ 51) >>> 10 % 2 ^ 8 = (bytes.val[14]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 16
      have : 16+i< 64:= by apply lt_trans this (by simp)
@@ -1208,7 +1214,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq3: ((i6.val >>>6) % 2^ 51) >>> 18 % 2 ^ 8 = (bytes.val[15]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 24
      have : 24+i< 64:= by apply lt_trans this (by simp)
@@ -1227,7 +1233,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq4: ((i6.val >>>6) % 2^ 51) >>> 26 % 2 ^ 8 = (bytes.val[16]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 32
      have : 32+i< 64:= by apply lt_trans this (by simp)
@@ -1246,7 +1252,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq5: ((i6.val >>>6) % 2^ 51) >>> 34 % 2 ^ 8 = (bytes.val[17]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 40
      have : 40+i< 64:= by apply lt_trans this (by simp)
@@ -1265,7 +1271,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq6: ((i6.val >>>6) % 2^ 51) >>> 42 % 2 ^ 8 = (bytes.val[18]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 48
      have : 48+i< 64:= by apply lt_trans this (by simp)
@@ -1289,8 +1295,8 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := i6_post 50 (by simp)
      have := Nat.testBit_mod_two_pow (i6.val >>>6) 51 50
      simp_all
-  have eqi6:= powTwo_block_split_51_remain2  (i6.val >>>6)
-  have := @powTwo_two_block_split 1 51 (i6.val >>> 6) (by simp)
+  have eqi6:= two_pow_block_split_51_remain2  (i6.val >>>6)
+  have := @two_pow_two_block_split 1 51 (i6.val >>> 6) (by simp)
   rw[eq1, eq2, eq3, eq4, eq5, eq6, ← this] at eqi6
   rw[eq126, eq127] at eqi6
   rw[eq190] at eqi6
@@ -1339,7 +1345,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := Nat.toNat_testBit ((bytes.val[19].val) >>> 7) 0
      simp_all
   have eq1: ((i9.val >>>1) % 2^ 51) >>> 7 % 2 ^ 8 = (bytes.val[20]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 8
      have : 8+i< 64:= by apply lt_trans this (by simp)
@@ -1358,7 +1364,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq2: ((i9.val >>>1) % 2^ 51) >>> 15 % 2 ^ 8 = (bytes.val[21]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 16
      have : 16 + i< 64:= by apply lt_trans this (by simp)
@@ -1377,7 +1383,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq3: ((i9.val >>>1) % 2^ 51) >>> 23 % 2 ^ 8 = (bytes.val[22]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 24
      have : 24 + i< 64:= by apply lt_trans this (by simp)
@@ -1396,7 +1402,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq4: ((i9.val >>>1) % 2^ 51) >>> 31 % 2 ^ 8 = (bytes.val[23]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 32
      have : 32 + i< 64:= by apply lt_trans this (by simp)
@@ -1415,7 +1421,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq5: ((i9.val >>>1) % 2^ 51) >>> 39 % 2 ^ 8 = (bytes.val[24]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 40
      have : 40 + i< 64:= by apply lt_trans this (by simp)
@@ -1457,8 +1463,8 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := i9_post 50 (by simp)
      have := Nat.testBit_mod_two_pow (i9.val >>> 1) 51 50
      simp_all
-  have eqi9:= powTwo_block_split_51_remain7  (i9.val >>> 1)
-  have := @powTwo_seven_block_split 1 51 (i9.val >>> 1) (by simp)
+  have eqi9:= two_pow_block_split_51_remain7  (i9.val >>> 1)
+  have := @two_pow_seven_block_split 1 51 (i9.val >>> 1) (by simp)
   rw[eq1, eq2, eq3, eq4, eq5, ← this] at eqi9
   rw[eq191, eq192, eq193, eq194, eq195, eq196, eq197] at eqi9
   rw[eq250, eq251, eq252, eq253] at eqi9
@@ -1490,7 +1496,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := Nat.toNat_testBit ((bytes.val[25].val)>>> 7) 0
      simp_all
   have eq1: ((i12.val >>> 12) % 2^ 51) >>> 4 % 2 ^ 8 = (bytes.val[26]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 16
      have : 16+i< 64:= by apply lt_trans this (by simp)
@@ -1509,7 +1515,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq2: ((i12.val >>> 12) % 2^ 51) >>> 12 % 2 ^ 8 = (bytes.val[27]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 24
      have : 24+i< 64:= by apply lt_trans this (by simp)
@@ -1528,7 +1534,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq3: ((i12.val >>> 12) % 2^ 51) >>> 20 % 2 ^ 8 = (bytes.val[28]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 32
      have : 32+i< 64:= by apply lt_trans this (by simp)
@@ -1547,7 +1553,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq4: ((i12.val >>> 12) % 2^ 51) >>> 28 % 2 ^ 8 = (bytes.val[29]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 40
      have : 40+i< 64:= by apply lt_trans this (by simp)
@@ -1566,7 +1572,7 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      simp
    · scalar_tac
   have eq5: ((i12.val >>> 12) % 2^ 51) >>> 36 % 2 ^ 8 = (bytes.val[30]).val := by
-   apply eq_of_testBit_eq
+   apply eq_of_testBit_eq_on_lt8
    · intro i hi
      have:= Nat.add_lt_add_left hi 48
      have : 48+i< 64:= by apply lt_trans this (by simp)
@@ -1626,8 +1632,8 @@ theorem from_bytes_spec (bytes : Array U8 32#usize) :
      have := i12_post 50 (by simp)
      have := Nat.testBit_mod_two_pow (i12.val >>> 12) 51 50
      simp_all
-  have eqi12:= powTwo_block_split_51_remain4  (i12.val >>> 12)
-  have := @powTwo_four_block_split 1 51 (i12.val >>> 12) (by simp)
+  have eqi12:= two_pow_block_split_51_remain4  (i12.val >>> 12)
+  have := @two_pow_four_block_split 1 51 (i12.val >>> 12) (by simp)
   rw[eq1, eq2, eq3, eq4, eq5, ← this] at eqi12
   rw[eq254, eq255, eq256, eq257] at eqi12
   rw[eq310, eq311, eq312, eq313, eq314, eq315, eq316] at eqi12

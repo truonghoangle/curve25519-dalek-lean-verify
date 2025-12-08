@@ -5,6 +5,10 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Square
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Mul
+import Curve25519Dalek.Specs.Field.FieldElement51.PowP58
+import Curve25519Dalek.Specs.Scalar.Scalar.CtEq
 
 /-! # Spec Theorem for `FieldElement51::sqrt_ratio_i`
 
@@ -91,5 +95,6 @@ theorem sqrt_ratio_i_spec
 
     := by
     sorry
+
 
 end curve25519_dalek.field.FieldElement51

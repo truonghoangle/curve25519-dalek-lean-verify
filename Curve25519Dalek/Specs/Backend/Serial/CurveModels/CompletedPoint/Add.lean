@@ -111,6 +111,8 @@ theorem add_spec' {a b : Array U64 5#usize}
   simp_all
 
 set_option maxHeartbeats 1000000 in
+-- simp_all is heavy
+
 @[progress]
 theorem add_spec
   (self : edwards.EdwardsPoint)

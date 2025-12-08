@@ -28,19 +28,29 @@ natural language specs:
     • The function always succeeds (no panic)
     • Field51_as_Nat(result) ≡ Field51_as_Nat(lhs) * Field51_as_Nat(rhs) (mod p)
 -/
-
-/-- **Spec and proof concerning `backend.serial.u64.field.FieldElement51.Mul.mul`**:
+/-
+ **Spec and proof concerning `backend.serial.u64.field.FieldElement51.Mul.mul`**:
 - No panic (always returns successfully)
 - The result, when converted to a natural number, is congruent to the product of the inputs modulo p
 - Input bounds: each limb < 2^54
 - Output bounds: each limb < 2^52
 -/
+
+set_option maxHeartbeats 10000000 in
+-- progress simp_all is heavy
+
 @[progress]
 theorem mul_spec (lhs rhs : Array U64 5#usize)
     (hlhs : ∀ i < 5, lhs[i]!.val < 2 ^ 54) (hrhs : ∀ i < 5, rhs[i]!.val < 2 ^ 54) :
     ∃ r, mul lhs rhs = ok r ∧
     Field51_as_Nat r ≡ (Field51_as_Nat lhs) * (Field51_as_Nat rhs) [MOD p] ∧
     (∀ i < 5, r[i]!.val < 2 ^ 52) := by
+  unfold mul mul.m
+  progress*
   sorry
+
+
+
+
 
 end curve25519_dalek.backend.serial.u64.field.FieldElement51.Mul
