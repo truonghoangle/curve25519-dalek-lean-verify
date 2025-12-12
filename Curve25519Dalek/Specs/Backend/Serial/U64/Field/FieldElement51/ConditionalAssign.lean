@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
-
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.ConditionalSelect
 /-! # ConditionalAssign
 
 Specification for `FieldElement51::conditional_assign`.
@@ -42,9 +42,8 @@ theorem conditional_assign_spec
       (∀ i < 5,
         res[i]! = (if choice.val = 1#u8 then other[i]! else self[i]!)) := by
   unfold ConditionallySelectablecurve25519_dalekbackendserialu64fieldFieldElement51.conditional_assign
-  -- Directly discharge by unfolding; detailed limbwise reasoning mirrors
-  -- the sequence of index_mut_usize updates and U64 conditional_assign.
-  -- We leave the mechanical proof obligations to future work.
   sorry
+
+
 
 end curve25519_dalek.backend.serial.u64.field.FieldElement51.ConditionalAssign
