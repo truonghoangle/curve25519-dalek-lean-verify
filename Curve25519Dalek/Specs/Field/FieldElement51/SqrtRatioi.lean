@@ -64,8 +64,8 @@ theorem sqrt_ratio_i_spec
 
     (u : backend.serial.u64.field.FieldElement51)
     (v : backend.serial.u64.field.FieldElement51)
-    (h_u_bounds : ∀ i, i < 5 → (u[i]!).val ≤ 2 ^ 51 - 1)
-    (h_v_bounds : ∀ i, i < 5 → (v[i]!).val ≤ 2 ^ 51 - 1) :
+    (h_u_bounds : ∀ i, i < 5 → (u[i]!).val ≤ 2 ^ 52 - 1)
+    (h_v_bounds : ∀ i, i < 5 → (v[i]!).val ≤ 2 ^ 52 - 1) :
 
     ∃ c r, sqrt_ratio_i u v = ok (c, r) ∧
     let u_nat := Field51_as_Nat u % p
@@ -83,11 +83,15 @@ theorem sqrt_ratio_i_spec
 
     -- Case 3: u and v are nonzero and u/v is a square
     (u_nat ≠ 0 ∧ v_nat ≠ 0 ∧ (∃ x : Nat, (x^2 * v_nat) % p = u_nat) →
-    c.val = 1#u8 ∧ (r_nat^2 * v_nat) % p = u_nat) ∧
+    c.val = 1#u8 ∧ (r_nat^2 * v_nat) % p = u_nat ∧
+    (∀ i < 5,  r_nat ≤ 2 ^ 54 - 1)
+    ) ∧
 
     -- Case 4: u and v are nonzero and u/v is not a square
     (u_nat ≠ 0 ∧ v_nat ≠ 0 ∧ ¬(∃ x : Nat, (x^2 * v_nat) % p = u_nat) →
-    c.val = 0#u8 ∧ (r_nat^2 * v_nat) % p = (i_nat * u_nat) % p)
+    c.val = 0#u8 ∧ (r_nat^2 * v_nat) % p = (i_nat * u_nat) % p ∧
+    (∀ i < 5,  r_nat ≤ 2 ^ 54 - 1)
+    )
 
     := by
     sorry

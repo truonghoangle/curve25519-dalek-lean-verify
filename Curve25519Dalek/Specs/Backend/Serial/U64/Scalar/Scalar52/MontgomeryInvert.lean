@@ -5,6 +5,7 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.MontgomerySquare
 
 /-! # Spec Theorem for `Scalar52::montgomery_invert`
 
@@ -50,7 +51,6 @@ natural language specs:
 theorem montgomery_invert_spec (u : Scalar52) (h : Scalar52_as_Nat u % L ≠ 0) :
     ∃ u', montgomery_invert u = ok u' ∧
     (Scalar52_as_Nat u * Scalar52_as_Nat u') % L = (R * R) % L := by
-
   sorry
 
 end curve25519_dalek.scalar.Scalar52

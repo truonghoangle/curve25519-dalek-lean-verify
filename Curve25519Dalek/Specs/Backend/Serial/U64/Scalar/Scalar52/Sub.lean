@@ -87,7 +87,9 @@ theorem sub_spec (a b : Array U64 5#usize)
     (ha : ∀ i < 5, a[i]!.val < 2 ^ 52)
     (hb : ∀ i < 5, b[i]!.val < 2 ^ 52) :
     ∃ result, sub a b = ok result ∧
-    Scalar52_as_Nat result + Scalar52_as_Nat b ≡ Scalar52_as_Nat a [MOD L] := by
+    Scalar52_as_Nat result + Scalar52_as_Nat b ≡ Scalar52_as_Nat a [MOD L] ∧
+    (∀ i < 5, result[i]!.val < 2 ^ 52)
+     := by
   unfold sub
   -- progress*
 

@@ -67,7 +67,7 @@ Natural language specs:
 @[progress]
 theorem invsqrt_spec
     (v : backend.serial.u64.field.FieldElement51)
-    (h_v_bounds : ∀ i, i < 5 → (v[i]!).val ≤ 2 ^ 51 - 1)
+    (h_v_bounds : ∀ i, i < 5 → (v[i]!).val ≤ 2 ^ 52 - 1)
     (pow : Field51_as_Nat v * Field51_as_Nat v ≡ Field51_as_Nat ONE [MOD p]) :
     ∃ res, invsqrt v = ok res ∧
     let v_nat := Field51_as_Nat v % p

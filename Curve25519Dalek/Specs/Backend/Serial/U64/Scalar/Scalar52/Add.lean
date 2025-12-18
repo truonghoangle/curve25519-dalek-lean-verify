@@ -187,14 +187,14 @@ theorem add_spec (a b : Scalar52) (ha : ∀ i < 5, a[i]!.val < 2 ^ 52) (hb : ∀
     interval_cases i <;> decide
     -- END TASK
   · -- BEGIN TASK
-    rw [L_spec] at res_post
+    rw [L_spec] at res_post_1
     have h1 : Scalar52_as_Nat res ≡ Scalar52_as_Nat sum [MOD L] := by
       have hL_mod : L ≡ 0 [MOD L] := by
         rw [Nat.ModEq, Nat.zero_mod, Nat.mod_self]
       have : Scalar52_as_Nat res + L ≡ Scalar52_as_Nat res + 0 [MOD L] :=
         Nat.ModEq.add_left _ hL_mod
       simp only [add_zero] at this
-      exact this.symm.trans res_post
+      exact this.symm.trans res_post_1
     have h2 : Scalar52_as_Nat sum = Scalar52_as_Nat a + Scalar52_as_Nat b := by
       unfold Scalar52_as_Nat
       simp only [Finset.range_eq_Ico] at sum_post_3 ⊢
