@@ -416,7 +416,8 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
       rw[← add_assoc] at this
       apply le_trans this
       scalar_tac
-    ·
+    · rw[i7_post, i6_post]
+
 
 
 
