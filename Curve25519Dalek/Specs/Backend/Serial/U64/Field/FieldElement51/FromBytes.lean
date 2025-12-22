@@ -5,6 +5,8 @@ Authors: Oliver Butterley, Hoang Le Truong
 -/
 import Curve25519Dalek.Defs
 import Curve25519Dalek.Funs
+import Curve25519Dalek.Aux
+
 /-! # FromBytes
 Specification and proof for `FieldElement51::from_bytes`.
 This function constructs a field element from a 32-byte array.
@@ -176,12 +178,6 @@ theorem load8_at_spec_bitwise (input : Slice U8) (i : Usize)
     rw [show decide (56 ≤ j) by grind]
     all_goals grind
 
-theorem land_pow_two_sub_one_eq_mod (a n : Nat) :
-    a &&& (2^n - 1) = a % 2^n := by
-  induction n generalizing a
-  · simp
-    scalar_tac
-  · simp
 
 /-! ## Spec for `from_bytes` -/
 /-- **Spec for `backend.serial.u64.field.FieldElement51.from_bytes`**:

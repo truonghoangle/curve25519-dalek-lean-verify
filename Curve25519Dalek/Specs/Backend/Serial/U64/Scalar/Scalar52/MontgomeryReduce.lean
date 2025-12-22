@@ -124,7 +124,6 @@ theorem montgomery_reduce_part1_spec (sum : U128)
 
 
 
-#check Nat.mul_lt_mul_right
 
 
 
@@ -417,19 +416,7 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
       apply le_trans this
       scalar_tac
     · rw[i7_post, i6_post]
-
-
-
-
-
-
-
-
-
-
-
-
-
+      sorry
   · sorry
   · sorry
   · sorry
@@ -450,11 +437,10 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
   · sorry
   · sorry
   · sorry
-  · constructor
-    · sorry
-    · constructor
-      · grind
-      · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
 
 
 
