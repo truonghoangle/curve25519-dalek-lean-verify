@@ -1569,13 +1569,14 @@ theorem pow2k_loop_spec (k : ℕ) (k' : U32) (a : Array U64 5#usize)
 
     · constructor
       · suffices  h:Field51_as_Nat (a7.set 0#usize i62) ≡ Field51_as_Nat a ^ 2  [MOD p]
-        · have := Nat.ModEq.pow (2^k1.val) h
+        · rw[eqk] at res_post_1
+          have := Nat.ModEq.pow (2^ (k-1) ) h
           have := Nat.ModEq.trans res_post_1 this
           apply Nat.ModEq.trans this
           rw[← pow_mul]
-          have : 2 * 2 ^ k1.val = 2 ^ (k1.val +1) := by grind
-          rw[this, k1_post_1]
-          have : (k.val - 1) + 1 = k.val:= by grind
+          have : 2 * 2 ^ (k -1) = 2 ^ ((k -1) +1) := by grind
+          rw[this]
+          have : (k - 1) + 1 = k:= by grind
           rw[this]
 
 
@@ -1886,7 +1887,5 @@ theorem pow2k_spec (a : Array U64 5#usize) (k : U32) (hk : 0 < k.val)
   unfold pow2k
   progress*
   simp_all
-
-
 
 end curve25519_dalek.backend.serial.u64.field.FieldElement51
