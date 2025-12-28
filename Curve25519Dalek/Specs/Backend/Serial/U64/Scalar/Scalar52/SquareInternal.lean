@@ -28,7 +28,9 @@ attribute [-simp] Int.reducePow Nat.reducePow
 @[progress]
 theorem square_internal_spec (a : Array U64 5#usize) (ha : ∀ i, i < 5 → (a[i]!).val < 2 ^ 62) :
     ∃ result, square_internal a = ok (result) ∧
-    Scalar52_wide_as_Nat result = Scalar52_as_Nat a * Scalar52_as_Nat a := by
+    Scalar52_wide_as_Nat result = Scalar52_as_Nat a * Scalar52_as_Nat a ∧
+    (∀ i, i < 9 → (result[i]!).val < 8 * 2 ^ 124)
+     := by
   unfold square_internal Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index
   progress*
   · -- BEGIN TASK
@@ -62,9 +64,11 @@ theorem square_internal_spec (a : Array U64 5#usize) (ha : ∀ i, i < 5 → (a[i
     subst_vars; expand ha with 5; scalar_tac
     -- END TASK
   · -- BEGIN TASK
-    unfold Array.make at *
-    simp [Scalar52_wide_as_Nat, Scalar52_as_Nat, Finset.sum_range_succ, *]
-    grind
+    constructor
+    · unfold Array.make at *
+      simp [Scalar52_wide_as_Nat, Scalar52_as_Nat, Finset.sum_range_succ, *]
+      grind
     -- END TASK
+    · sorry
 
 end curve25519_dalek.backend.serial.u64.scalar.Scalar52

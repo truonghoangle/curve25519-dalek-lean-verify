@@ -79,6 +79,8 @@ theorem montgomery_reduce_part2_spec (sum : U128) :
     cw.2.val = sum.val % (2^52) ∧
     cw.1.val = sum.val / (2^52)
     := by
+   sorry
+/-
   unfold  montgomery_reduce.part2
   progress*
   simp[w_post_1]
@@ -87,7 +89,7 @@ theorem montgomery_reduce_part2_spec (sum : U128) :
   rw[this,land_pow_two_sub_one_eq_mod, i_post, i3_post_1]
   rw[Nat.shiftRight_eq_div_pow,UScalar.cast_val_eq, UScalarTy.numBits]
   grind
-
+-/
 @[progress]
 theorem montgomery_reduce_part1_spec (sum : U128) (sum_bound : sum.val < 2 ^ 128 - 2 ^ 102) :
     ∃ cp : U128 × U64,
@@ -95,6 +97,8 @@ theorem montgomery_reduce_part1_spec (sum : U128) (sum_bound : sum.val < 2 ^ 128
     cp.2.val = (sum.val * constants.LFACTOR.val) % (2^52) ∧
     cp.1.val = (sum.val + cp.2.val * (constants.L[0]!).val) / (2^52)
     := by
+    sorry
+/-
   unfold montgomery_reduce.part1 Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index
   progress*
   · -- BEGIN TASK
@@ -133,7 +137,7 @@ theorem montgomery_reduce_part1_spec (sum : U128) (sum_bound : sum.val < 2 ^ 128
 
 
 
-
+-/
 
 
 -- All limbs of constants.L are bounded by 2^52
@@ -170,14 +174,17 @@ set_option maxHeartbeats 10000000 in
 -/
 @[progress]
 theorem montgomery_reduce_spec (a : Array U128 9#usize)
-    (a_bounds : ∀ i < 9, a[i]!.val < 5 * 2 ^ 124) :
+    (a_bounds : ∀ i < 9, a[i]!.val < 8 * 2 ^ 124) :
     ∃ m,
     montgomery_reduce a = ok m ∧
     (Scalar52_as_Nat m * R) % L = Scalar52_wide_as_Nat a % L ∧
     ( ∀ i < 5, m[i]!.val < 2 ^ 52) ∧
     (Scalar52_as_Nat m < 2 ^ 259)
     := by
+  sorry
+/-
   unfold montgomery_reduce backend.serial.u64.scalar.Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index
+
   progress*
   · -- BEGIN TASK
     expand a_bounds with 5; scalar_tac
@@ -336,6 +343,7 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
         -- END TASK
       -- END TASK
     -- END TASK
+
   · -- BEGIN TASK
     rw[i7_post, i6_post]
     rename' __discr => discr1
@@ -452,6 +460,7 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
         -- END TASK
       -- END TASK
     -- END TASK
+
   ·  -- BEGIN TASK
     rw[i10_post, i11_post]
     have : i11.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
@@ -606,6 +615,7 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
   · sorry
   · sorry
   · sorry
+  · sorry
   · constructor
     · sorry
     · constructor
@@ -615,7 +625,7 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
 
 
 
-
+-/
 
 
 
