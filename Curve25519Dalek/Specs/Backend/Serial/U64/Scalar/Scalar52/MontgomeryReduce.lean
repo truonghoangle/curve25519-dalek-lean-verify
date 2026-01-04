@@ -98,7 +98,7 @@ theorem montgomery_reduce_part1_spec (sum : U128) (sum_bound : sum.val < 2 ^ 128
     cp.1.val = (sum.val + cp.2.val * (constants.L[0]!).val) / (2^52)
     := by
     sorry
-/-
+ /-
   unfold montgomery_reduce.part1 Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index
   progress*
   · -- BEGIN TASK
@@ -134,10 +134,10 @@ theorem montgomery_reduce_part1_spec (sum : U128) (sum_bound : sum.val < 2 ^ 128
       simp_all[Nat.shiftRight_eq_div_pow ]
       -- END TASK
     -- END TASK
-
-
-
 -/
+
+
+
 
 
 -- All limbs of constants.L are bounded by 2^52
@@ -150,6 +150,10 @@ theorem mul_mod (a c p : ℕ) : (a * c) % p = ((a % p) * (c % p)) % p := by
   simp [Nat.mul_mod]
 
 
+@[progress]
+theorem L_spec : Scalar52_as_Nat constants.L = L := by
+  unfold constants.L
+  decide
 
 
 /- **Spec and proof concerning `scalar.m`**:
@@ -163,8 +167,7 @@ theorem mul_mod (a c p : ℕ) : (a * c) % p = ((a % p) * (c % p)) % p := by
 
 
 
-
-set_option maxHeartbeats 10000000 in
+set_option maxHeartbeats 1000000000 in
 -- progress heavy
 
 /- **Spec and proof concerning `scalar.Scalar52.montgomery_reduce`**:
@@ -174,17 +177,90 @@ set_option maxHeartbeats 10000000 in
 -/
 @[progress]
 theorem montgomery_reduce_spec (a : Array U128 9#usize)
-    (a_bounds : ∀ i < 9, a[i]!.val < 8 * 2 ^ 124) :
+    (a_bounds : ∀ i < 9, a[i]!.val < 5 * 2 ^ 124) :
+    ∃ m,
+    montgomery_reduce a = ok m ∧
+    (Scalar52_as_Nat m * R) % L = Scalar52_wide_as_Nat a % L ∧
+    ( ∀ i < 5, m[i]!.val < 2 ^ 52) ∧
+    (Scalar52_as_Nat m < L)
+    := by
+    sorry
+/-
+  unfold montgomery_reduce backend.serial.u64.scalar.Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index
+  progress*
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · intro i hi
+    interval_cases i
+    any_goals (simp_all [Array.make]; apply Nat.mod_lt; simp)
+    simp[Array.make]
+    rw[r4_post, UScalar.cast_val_eq, UScalarTy.numBits, __discr_post_2]
+
+
+
+
+  · unfold constants.L
+    decide
+  · -- BEGIN STASK
+    rw[L_spec]
+    simp[Scalar52_as_Nat,Finset.sum_range_succ, Array.make]
+
+
+
+
+    -- END STASK
+
+
+  ·
+
+
+
+
+
+set_option maxHeartbeats 1000000000 in
+-- progress heavy
+
+/- **Spec and proof concerning `scalar.Scalar52.montgomery_reduce`**:
+- No panic (always returns successfully)
+- The result m satisfies the Montgomery reduction property:
+  m * R ≡ a (mod L), where R = 2^260 is the Montgomery constant
+-/
+@[progress]
+theorem montgomery_reduce_spec (a : Array U128 9#usize)
+    (a_bounds : ∀ i < 9, a[i]!.val < 5 * 2 ^ 124) :
     ∃ m,
     montgomery_reduce a = ok m ∧
     (Scalar52_as_Nat m * R) % L = Scalar52_wide_as_Nat a % L ∧
     ( ∀ i < 5, m[i]!.val < 2 ^ 52) ∧
     (Scalar52_as_Nat m < 2 ^ 259)
     := by
-  sorry
-/-
   unfold montgomery_reduce backend.serial.u64.scalar.Indexcurve25519_dalekbackendserialu64scalarScalar52UsizeU64.index
-
   progress*
   · -- BEGIN TASK
     expand a_bounds with 5; scalar_tac
@@ -248,7 +324,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
     have := (Nat.mul_lt_mul_right this).mpr ineq1
     rw[← __discr_post_1] at this
     have := Nat.add_lt_add (a_bounds 1 (by simp)) this
-
     suffices h:  __discr.1.val <  2 ^128 - 2^ 102 -1- 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[1]!).val
     · -- BEGIN TASK
       have :=Nat.add_lt_add h this
@@ -300,9 +375,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
       have := (Nat.mul_lt_mul_right this).mpr ineq1
       suffices h: i5.val <  2 ^ 52 * (2 ^ 128 - 1 - 5 * 2 ^ 124) - 2 ^ 52 * (constants.L[0]!).val
       · -- BEGIN TASK
-        have :=Nat.add_lt_add h this
-        simp_all
-        apply le_trans (le_of_lt this)
         scalar_tac
         -- END TASK
       · -- BEGIN TASK
@@ -361,10 +433,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
     have := Nat.add_lt_add (a_bounds 2 (by simp: 2<9)) this
     suffices h: discr1.1.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val
     · -- BEGIN TASK
-      have := Nat.add_le_add h (le_of_lt this)
-      simp[← add_assoc] at this
-      simp
-      apply le_trans this
       scalar_tac
       -- END TASK
     · -- BEGIN TASK
@@ -383,10 +451,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
       suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
       2 ^ 52 *  ((constants.L)[0]!).val
       · -- BEGIN TASK
-        have := Nat.add_le_add h (le_of_lt this)
-        simp at this
-        simp
-        apply le_trans this
         scalar_tac
         -- END TASK
       · -- BEGIN TASK
@@ -405,10 +469,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
         suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
           2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
         · -- BEGIN TASK
-          have := Nat.add_le_add h (le_of_lt this)
-          simp at this
-          simp
-          apply le_trans this
           scalar_tac
           -- END TASK
         · -- BEGIN TASK
@@ -441,18 +501,10 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
                (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
                5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
             · -- BEGIN TASK
-              have := Nat.add_le_add h (le_of_lt this)
-              simp at this
-              simp
-              apply le_trans this
               scalar_tac
               -- END TASK
             · -- BEGIN TASK
               rw[i_post]
-              have:= (le_of_lt (a_bounds 0 (by simp : 0 < 9)))
-              simp at this
-              simp
-              apply le_trans this
               scalar_tac
               -- END TASK
             -- END TASK
@@ -473,7 +525,7 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
       rw[__discr_post_1]
       apply Nat.mod_lt
       simp
-    suffices h: i7.val + i9.val < 2^ 128 - 1 - 2 ^ 52 *  ((constants.L)[1]!).val
+    suffices h: i7.val + i9.val ≤  2^ 128 - 1 - 2 ^ 52 *  ((constants.L)[1]!).val
     · scalar_tac
     · rw[i7_post, i6_post]
       rename' __discr => discr1
@@ -491,10 +543,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
       have := Nat.add_lt_add (a_bounds 2 (by simp: 2<9)) this
       suffices h: discr1.1.val ≤  2^ 128 - 1 - 2 ^ 52 *  ((constants.L)[1]!).val  - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val
       · -- BEGIN TASK
-        have := Nat.add_le_add h (le_of_lt this)
-        simp[← add_assoc] at this
-        simp
-        apply le_trans this
         scalar_tac
         -- END TASK
       · -- BEGIN TASK
@@ -513,10 +561,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
         suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
         2 ^ 52 *  ((constants.L)[0]!).val
         · -- BEGIN TASK
-          have := Nat.add_le_add h (le_of_lt this)
-          simp at this
-          simp
-          apply le_trans this
           scalar_tac
           -- END TASK
         · -- BEGIN TASK
@@ -535,10 +579,6 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
           suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
             2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
           · -- BEGIN TASK
-            have := Nat.add_le_add h (le_of_lt this)
-            simp at this
-            simp
-            apply le_trans this
             scalar_tac
             -- END TASK
           · -- BEGIN TASK
@@ -571,10 +611,121 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
                 (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
                 5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
               · -- BEGIN TASK
-                have := Nat.add_le_add h (le_of_lt this)
-                simp at this
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[i_post]
+                scalar_tac
+                -- END TASK
+              -- END TASK
+            -- END TASK
+          -- END TASK
+        -- END TASK
+      -- END TASK
+
+
+
+    -- END TASK
+
+
+  ·  -- BEGIN TASK
+    rw[i12_post, i10_post, i11_post]
+    have : i11.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+      simp[i11_post, i3_post]
+      have : 0< ((constants.L)[1]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      rw[__discr_post_1]
+      apply Nat.mod_lt
+      simp
+    suffices h: i7.val + i9.val ≤  2^ 128 - 2^102-1 - 2 ^ 52 *  ((constants.L)[1]!).val
+    · scalar_tac
+    · rw[i7_post, i6_post]
+      rename' __discr => discr1
+      have : i9.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+        simp[i9_post, i8_post]
+        have : 0< ((constants.L)[2]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        rename' __discr_post_1=>  __discr1
+        rw[__discr_post_1]
+        apply Nat.mod_lt
+        simp
+      have := Nat.add_lt_add (a_bounds 2 (by simp: 2<9)) this
+      suffices h: discr1.1.val ≤  2^ 128 - 2^102 - 1 - 2 ^ 52 *  ((constants.L)[1]!).val  - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val
+      · -- BEGIN TASK
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+        rw[__discr_post_2]
+        apply Nat.div_le_of_le_mul
+        have : ↑discr1.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+          simp
+          have : 0< ((constants.L)[0]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+        2 ^ 52 *  ((constants.L)[0]!).val
+        · -- BEGIN TASK
+          scalar_tac
+          -- END TASK
+        · -- BEGIN TASK
+          rw[i5_post]
+          have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+            simp[i4_post, i3_post]
+            have : 0< ((constants.L)[1]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            rename' __discr_post_1=>  __discr1
+            rw[__discr_post_1]
+            apply Nat.mod_lt
+            simp
+          suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+            2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+          · -- BEGIN TASK
+            scalar_tac
+            -- END TASK
+          · -- BEGIN TASK
+            rw[i2_post]
+            suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+            2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+            · -- BEGIN TASK
+              have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+              simp at this
+              simp[i1_post]
+              apply le_trans this
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+              rename' __discr_post_1=>  __discr1
+              rename' __discr_post_2=>  __discr2
+              rw[__discr_post_2]
+              apply Nat.div_le_of_le_mul
+              have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
                 simp
-                apply le_trans this
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i.val ≤  2 ^ 52 *
+                (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+              · -- BEGIN TASK
                 scalar_tac
                 -- END TASK
               · -- BEGIN TASK
@@ -595,29 +746,4290 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
 
     -- END TASK
 
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
+
+  · -- BEGIN TASK
+    have ineq1:= Nat.mod_lt (i12.val * constants.LFACTOR.val) (by simp: 0 < 2 ^ 52)
+    have :0< (constants.L[0]!).val := by
+      unfold constants.L
+      decide
+    have := (Nat.mul_lt_mul_right this).mpr ineq1
+    suffices h: __discr.1.val ≤  2 ^128-1 - 5 * 2 ^ 124
+    · -- BEGIN TASK
+      have :=Nat.add_le_add h (le_of_lt (a_bounds 3 (by simp)))
+      simp at this
+      simp[i13_post]
+      apply le_trans this
+      scalar_tac
+      -- END TASK
+    · -- BEGIN TASK
+      rw[__discr_post_2, __discr_post_1,]
+      apply Nat.div_le_of_le_mul
+      suffices h: i12.val ≤  2 ^ 52 * (2 ^ 128 - 1 - 5 * 2 ^ 124) - 2 ^ 52 * (constants.L.val[0]).val
+      · scalar_tac
+      ·  -- BEGIN TASK
+        rw[i12_post, i10_post, i11_post]
+        rename' __discr => discr3
+        rename' __discr_post_1 => __discr_post_3
+        rename' __discr_post_2 => __discr_post_4
+        have : i11.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+          simp[i11_post, i3_post]
+          have : 0< ((constants.L)[1]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i7.val + i9.val ≤  2^ 128 - 2^102-1 - 2 ^ 52 *  ((constants.L)[1]!).val
+        · scalar_tac
+        · rw[i7_post, i6_post]
+          rename' __discr => discr1
+          have : i9.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+            simp[i9_post, i8_post]
+            have : 0< ((constants.L)[2]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            rename' __discr_post_1=>  __discr1
+            rw[__discr_post_1]
+            apply Nat.mod_lt
+            simp
+          have := Nat.add_lt_add (a_bounds 2 (by simp: 2<9)) this
+          suffices h: discr1.1.val ≤  2^ 128 - 2^102 - 1 - 2 ^ 52 *  ((constants.L)[1]!).val  - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val
+          · -- BEGIN TASK
+            scalar_tac
+            -- END TASK
+          · -- BEGIN TASK
+            rw[__discr_post_2]
+            apply Nat.div_le_of_le_mul
+            have : ↑discr1.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+              simp
+              have : 0< ((constants.L)[0]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              rw[__discr_post_1]
+              apply Nat.mod_lt
+              simp
+            suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+            2 ^ 52 *  ((constants.L)[0]!).val
+            · -- BEGIN TASK
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+              rw[i5_post]
+              have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                simp[i4_post, i3_post]
+                have : 0< ((constants.L)[1]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rename' __discr_post_1=>  __discr1
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[i2_post]
+                suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                · -- BEGIN TASK
+                  have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                  simp at this
+                  simp[i1_post]
+                  apply le_trans this
+                  scalar_tac
+                  -- END TASK
+                · -- BEGIN TASK
+                  rename' __discr_post_1=>  __discr1
+                  rename' __discr_post_2=>  __discr2
+                  rw[__discr_post_2]
+                  apply Nat.div_le_of_le_mul
+                  have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                    simp
+                    have : 0< ((constants.L)[0]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    rw[__discr_post_1]
+                    apply Nat.mod_lt
+                    simp
+                  suffices h: i.val ≤  2 ^ 52 *
+                    (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                    5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                  · -- BEGIN TASK
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                    rw[i_post]
+                    scalar_tac
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+            -- END TASK
+          -- END TASK
+
+
+
+        -- END TASK
+
+
+  · -- BEGIN TASK
+    rw[i14_post, i13_post, i15_post]
+    have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+      simp[i15_post, i8_post]
+      have : 0< ((constants.L)[2]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      rename' __discr_post_1 => __discr_post_3
+      rw[__discr_post_1]
+      apply Nat.mod_lt
+      simp
+    have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+    suffices h:  __discr.1.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+    · -- BEGIN TASK
+      scalar_tac
+      -- END TASK
+    · -- BEGIN TASK
+            rw[__discr_post_2]
+            apply Nat.div_le_of_le_mul
+            have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+              simp
+              have : 0< ((constants.L)[0]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              rw[__discr_post_1]
+              apply Nat.mod_lt
+              simp
+            suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+            2 ^ 52 *  ((constants.L)[0]!).val
+            · -- BEGIN TASK
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+              rw[i5_post]
+              have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                simp[i4_post, i3_post]
+                have : 0< ((constants.L)[1]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rename' __discr_post_1=>  __discr1
+                rename' __discr_post_1=>  __discr2
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[i2_post]
+                rename' __discr=>  discr1
+                rename' __discr=>  discr2
+                suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                · -- BEGIN TASK
+                  have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                  simp at this
+                  simp[i1_post]
+                  apply le_trans this
+                  scalar_tac
+                  -- END TASK
+                · -- BEGIN TASK
+                  rename' __discr_post_1=>  __discr1
+                  rename' __discr_post_2=>  __discr2
+                  rename' __discr_post_2=>  __discr3
+                  rename' __discr_post_1=>  __discr4
+                  rw[__discr_post_2]
+                  apply Nat.div_le_of_le_mul
+                  have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                    simp
+                    have : 0< ((constants.L)[0]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    rw[__discr_post_1]
+                    apply Nat.mod_lt
+                    simp
+                  suffices h: i.val ≤  2 ^ 52 *
+                    (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                    5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                  · -- BEGIN TASK
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                    rw[i_post]
+                    scalar_tac
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+            -- END TASK
+          -- END TASK
+        -- END TASK
+      -- END TASK
+   -- END TASK
+  · -- BEGIN TASK
+    rw[i16_post]
+    have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+      simp[i17_post, i3_post]
+      have : 0< ((constants.L)[1]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      rw[__discr_post_1]
+      apply Nat.mod_lt
+      simp
+    suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      rw[i14_post, i13_post, i15_post]
+      have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+        simp[i15_post, i8_post]
+        have : 0< ((constants.L)[2]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        rename' __discr_post_1 => __discr_post_3
+        rw[__discr_post_1]
+        apply Nat.mod_lt
+        simp
+      have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+      suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+      · -- BEGIN TASK
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+              rw[__discr_post_2]
+              apply Nat.div_le_of_le_mul
+              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                simp
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+              2 ^ 52 *  ((constants.L)[0]!).val
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[i5_post]
+                have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                  simp[i4_post, i3_post]
+                  have : 0< ((constants.L)[1]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  rename' __discr_post_1=>  __discr1
+                  rename' __discr_post_1=>  __discr2
+                  rw[__discr_post_1]
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                · -- BEGIN TASK
+                  scalar_tac
+                  -- END TASK
+                · -- BEGIN TASK
+                  rw[i2_post]
+                  rename' __discr=>  discr1
+                  rename' __discr=>  discr2
+                  suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                  · -- BEGIN TASK
+                    have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                    simp at this
+                    simp[i1_post]
+                    apply le_trans this
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                    rename' __discr_post_1=>  __discr1
+                    rename' __discr_post_2=>  __discr2
+                    rename' __discr_post_2=>  __discr3
+                    rename' __discr_post_1=>  __discr4
+
+                    rw[__discr_post_2]
+                    apply Nat.div_le_of_le_mul
+                    have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                      simp
+                      have : 0< ((constants.L)[0]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rw[__discr_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i.val ≤  2 ^ 52 *
+                      (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                      5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                    · -- BEGIN TASK
+                      scalar_tac
+                      -- END TASK
+                    · -- BEGIN TASK
+                      rw[i_post]
+                      scalar_tac
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+            -- END TASK
+          -- END TASK
+        -- END TASK
+      -- END TASK
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i18_post,i16_post]
+    have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+      simp[i17_post, i3_post]
+      have : 0< ((constants.L)[1]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      rw[__discr_post_1]
+      apply Nat.mod_lt
+      simp
+    suffices h: i14.val + i15.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      rw[i14_post, i13_post, i15_post]
+      have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+        simp[i15_post, i8_post]
+        have : 0< ((constants.L)[2]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        rename' __discr_post_1 => __discr_post_3
+        rw[__discr_post_1]
+        apply Nat.mod_lt
+        simp
+      have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+      suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+      · -- BEGIN TASK
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+              rw[__discr_post_2]
+              apply Nat.div_le_of_le_mul
+              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                simp
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+              2 ^ 52 *  ((constants.L)[0]!).val
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[i5_post]
+                have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                  simp[i4_post, i3_post]
+                  have : 0< ((constants.L)[1]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  rename' __discr_post_1=>  __discr1
+                  rename' __discr_post_1=>  __discr2
+                  rw[__discr_post_1]
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                · -- BEGIN TASK
+                  scalar_tac
+                  -- END TASK
+                · -- BEGIN TASK
+                  rw[i2_post]
+                  rename' __discr=>  discr1
+                  rename' __discr=>  discr2
+                  suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                  · -- BEGIN TASK
+                    have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                    simp at this
+                    simp[i1_post]
+                    apply le_trans this
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                    rename' __discr_post_1=>  __discr1
+                    rename' __discr_post_2=>  __discr2
+                    rename' __discr_post_2=>  __discr3
+                    rename' __discr_post_1=>  __discr4
+
+                    rw[__discr_post_2]
+                    apply Nat.div_le_of_le_mul
+                    have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                      simp
+                      have : 0< ((constants.L)[0]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rw[__discr_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i.val ≤  2 ^ 52 *
+                      (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                      5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                    · -- BEGIN TASK
+                      scalar_tac
+                      -- END TASK
+                    · -- BEGIN TASK
+                      rw[i_post]
+                      scalar_tac
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+            -- END TASK
+          -- END TASK
+        -- END TASK
+      -- END TASK
+    -- END TASK
+  · -- BEGIN TASK
+    suffices h: __discr.1.val < 2 ^ 128 - 5 * 2 ^ 124
+    · -- BEGIN TASK
+      rw[i19_post]
+      expand a_bounds with 5
+      scalar_tac
+      -- END TASK
+    · -- BEGIN TASK
+      rw[__discr_post_2]
+      apply Nat.div_lt_of_lt_mul
+      have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+        simp
+        have : 0< ((constants.L)[0]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        rw[__discr_post_1]
+        apply Nat.mod_lt
+        simp
+      suffices h: i18.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+              2 ^ 52 *  ((constants.L)[0]!).val - 2
+      · -- BEGIN TASK
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+        rw[i18_post,i16_post]
+        clear this i19_post __discr_post_2 __discr_post_1
+        rename' __discr => discr0
+        have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+          simp[i17_post, i3_post]
+          have : 0< ((constants.L)[1]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i14.val + i15.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+          rw[i14_post, i13_post, i15_post]
+          have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+            simp[i15_post, i8_post]
+            have : 0< ((constants.L)[2]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            rename' __discr_post_1 => __discr_post_3
+            rw[__discr_post_1]
+            apply Nat.mod_lt
+            simp
+          have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+          suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+          · -- BEGIN TASK
+            scalar_tac
+            -- END TASK
+          · -- BEGIN TASK
+                  rw[__discr_post_2]
+                  apply Nat.div_le_of_le_mul
+                  have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                    simp
+                    have : 0< ((constants.L)[0]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    rw[__discr_post_1]
+                    apply Nat.mod_lt
+                    simp
+                  suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                  2 ^ 52 *  ((constants.L)[0]!).val
+                  · -- BEGIN TASK
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                    rw[i5_post]
+                    have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                      simp[i4_post, i3_post]
+                      have : 0< ((constants.L)[1]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rename' __discr_post_1=>  __discr1
+                      rename' __discr_post_1=>  __discr2
+                      rw[__discr_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                      2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                    · -- BEGIN TASK
+                      scalar_tac
+                      -- END TASK
+                    · -- BEGIN TASK
+                      rw[i2_post]
+                      rename' __discr=>  discr1
+                      rename' __discr=>  discr2
+                      suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                      2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                      · -- BEGIN TASK
+                        have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                        simp at this
+                        simp[i1_post]
+                        apply le_trans this
+                        scalar_tac
+                        -- END TASK
+                      · -- BEGIN TASK
+                        rename' __discr_post_1=>  __discr1
+                        rename' __discr_post_2=>  __discr2
+                        rename' __discr_post_2=>  __discr3
+                        rename' __discr_post_1=>  __discr4
+
+                        rw[__discr_post_2]
+                        apply Nat.div_le_of_le_mul
+                        have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                          simp
+                          have : 0< ((constants.L)[0]!).val := by
+                            unfold constants.L
+                            decide
+                          simp at this
+                          apply (Nat.mul_lt_mul_right this).mpr
+                          rw[__discr_post_1]
+                          apply Nat.mod_lt
+                          simp
+                        suffices h: i.val ≤  2 ^ 52 *
+                          (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                          5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                        · -- BEGIN TASK
+                          scalar_tac
+                          -- END TASK
+                        · -- BEGIN TASK
+                          rw[i_post]
+                          scalar_tac
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+            -- END TASK
+          -- END TASK
+        -- END TASK
+
+      -- END TASK
+
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i20_post]
+    have : i22.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+      simp[i22_post, i21_post]
+      have : 0< ((constants.L)[4]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+
+    suffices h: __discr.1.val + i19.val ≤ 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+      · -- BEGIN TASK
+        rw[i19_post]
+        expand a_bounds with 5
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+        rw[__discr_post_2]
+        apply Nat.div_lt_of_lt_mul
+        have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+          simp
+          have : 0< ((constants.L)[0]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i18.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                2 ^ 52 *  ((constants.L)[0]!).val - 2
+        · -- BEGIN TASK
+          scalar_tac
+          -- END TASK
+        · -- BEGIN TASK
+          rw[i18_post,i16_post]
+          clear this i19_post __discr_post_2 __discr_post_1
+          rename' __discr => discr0
+          have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+            simp[i17_post, i3_post]
+            have : 0< ((constants.L)[1]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            rw[__discr_post_1]
+            apply Nat.mod_lt
+            simp
+          suffices h: i14.val + i15.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+          · scalar_tac
+          · -- BEGIN TASK
+            rw[i14_post, i13_post, i15_post]
+            have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+              simp[i15_post, i8_post]
+              have : 0< ((constants.L)[2]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              rename' __discr_post_1 => __discr_post_3
+              rw[__discr_post_1]
+              apply Nat.mod_lt
+              simp
+            have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+            suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+            · -- BEGIN TASK
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+                    rw[__discr_post_2]
+                    apply Nat.div_le_of_le_mul
+                    have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                      simp
+                      have : 0< ((constants.L)[0]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rw[__discr_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                    2 ^ 52 *  ((constants.L)[0]!).val
+                    · -- BEGIN TASK
+                      scalar_tac
+                      -- END TASK
+                    · -- BEGIN TASK
+                      rw[i5_post]
+                      have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                        simp[i4_post, i3_post]
+                        have : 0< ((constants.L)[1]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        rename' __discr_post_1=>  __discr1
+                        rename' __discr_post_1=>  __discr2
+                        rw[__discr_post_1]
+                        apply Nat.mod_lt
+                        simp
+                      suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                        2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                      · -- BEGIN TASK
+                        scalar_tac
+                        -- END TASK
+                      · -- BEGIN TASK
+                        rw[i2_post]
+                        rename' __discr=>  discr1
+                        rename' __discr=>  discr2
+                        suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                        2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                        · -- BEGIN TASK
+                          have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                          simp at this
+                          simp[i1_post]
+                          apply le_trans this
+                          scalar_tac
+                          -- END TASK
+                        · -- BEGIN TASK
+                          rename' __discr_post_1=>  __discr1
+                          rename' __discr_post_2=>  __discr2
+                          rename' __discr_post_2=>  __discr3
+                          rename' __discr_post_1=>  __discr4
+
+                          rw[__discr_post_2]
+                          apply Nat.div_le_of_le_mul
+                          have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                            simp
+                            have : 0< ((constants.L)[0]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            rw[__discr_post_1]
+                            apply Nat.mod_lt
+                            simp
+                          suffices h: i.val ≤  2 ^ 52 *
+                            (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                            5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                          · -- BEGIN TASK
+                            scalar_tac
+                            -- END TASK
+                          · -- BEGIN TASK
+                            rw[i_post]
+                            scalar_tac
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+            -- END TASK
+          -- END TASK
+
+        -- END TASK
+
+
+      -- END TASK
+
+
+
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i23_post]
+    have : i24.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+      simp[i24_post, i8_post]
+      have : 0< ((constants.L)[2]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+    suffices h: i20.val + i22.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      rw[i20_post]
+      have : i22.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+        simp[i22_post, i21_post]
+        have : 0< ((constants.L)[4]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        simp_all
+        apply Nat.mod_lt
+        simp
+
+      suffices h: __discr.1.val + i19.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+      · scalar_tac
+      · -- BEGIN TASK
+        suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+        · -- BEGIN TASK
+          rw[i19_post]
+          expand a_bounds with 5
+          scalar_tac
+          -- END TASK
+        · -- BEGIN TASK
+          rw[__discr_post_2]
+          apply Nat.div_lt_of_lt_mul
+          have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                    simp
+                    have : 0< ((constants.L)[0]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    rw[__discr_post_1]
+                    apply Nat.mod_lt
+                    simp
+          suffices h: i18.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                  2 ^ 52 *  ((constants.L)[0]!).val - 2
+          · -- BEGIN TASK
+            scalar_tac
+            -- END TASK
+          · -- BEGIN TASK
+            rw[i18_post,i16_post]
+            clear this i19_post __discr_post_2 __discr_post_1
+            rename' __discr => discr0
+            have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+              simp[i17_post, i3_post]
+              have : 0< ((constants.L)[1]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              rw[__discr_post_1]
+              apply Nat.mod_lt
+              simp
+            suffices h: i14.val + i15.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+            · scalar_tac
+            · -- BEGIN TASK
+              rw[i14_post, i13_post, i15_post]
+              have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                simp[i15_post, i8_post]
+                have : 0< ((constants.L)[2]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rename' __discr_post_1 => __discr_post_3
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+              suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                      rw[__discr_post_2]
+                      apply Nat.div_le_of_le_mul
+                      have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                        simp
+                        have : 0< ((constants.L)[0]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        rw[__discr_post_1]
+                        apply Nat.mod_lt
+                        simp
+                      suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                      2 ^ 52 *  ((constants.L)[0]!).val
+                      · -- BEGIN TASK
+                        scalar_tac
+                        -- END TASK
+                      · -- BEGIN TASK
+                        rw[i5_post]
+                        have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                          simp[i4_post, i3_post]
+                          have : 0< ((constants.L)[1]!).val := by
+                            unfold constants.L
+                            decide
+                          simp at this
+                          apply (Nat.mul_lt_mul_right this).mpr
+                          rename' __discr_post_1=>  __discr1
+                          rename' __discr_post_1=>  __discr2
+                          rw[__discr_post_1]
+                          apply Nat.mod_lt
+                          simp
+                        suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                          2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                        · -- BEGIN TASK
+                          scalar_tac
+                          -- END TASK
+                        · -- BEGIN TASK
+                          rw[i2_post]
+                          rename' __discr=>  discr1
+                          rename' __discr=>  discr2
+                          suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                          2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                          · -- BEGIN TASK
+                            have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                            simp at this
+                            simp[i1_post]
+                            apply le_trans this
+                            scalar_tac
+                            -- END TASK
+                          · -- BEGIN TASK
+                            rename' __discr_post_1=>  __discr1
+                            rename' __discr_post_2=>  __discr2
+                            rename' __discr_post_2=>  __discr3
+                            rename' __discr_post_1=>  __discr4
+                            rw[__discr_post_2]
+                            apply Nat.div_le_of_le_mul
+                            have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                              simp
+                              have : 0< ((constants.L)[0]!).val := by
+                                unfold constants.L
+                                decide
+                              simp at this
+                              apply (Nat.mul_lt_mul_right this).mpr
+                              rw[__discr_post_1]
+                              apply Nat.mod_lt
+                              simp
+                            suffices h: i.val ≤  2 ^ 52 *
+                              (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                              5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                            · -- BEGIN TASK
+                              scalar_tac
+                              -- END TASK
+                            · -- BEGIN TASK
+                              rw[i_post]
+                              scalar_tac
+                              -- END TASK
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+            -- END TASK
+
+          -- END TASK
+
+
+        -- END TASK
+
+
+
+
+      -- END TASK
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i25_post]
+    have : i26.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+      simp[i26_post, i3_post]
+      have : 0< ((constants.L)[1]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+    suffices h: i23.val + i24.val ≤ 2 ^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+        rw[i23_post]
+        have : i24.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+          simp[i24_post, i8_post]
+          have : 0< ((constants.L)[2]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          simp_all
+          apply Nat.mod_lt
+          simp
+        suffices h: i20.val + i22.val ≤ 2 ^ 128 - 2 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+          rw[i20_post]
+          have : i22.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+            simp[i22_post, i21_post]
+            have : 0< ((constants.L)[4]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            simp_all
+            apply Nat.mod_lt
+            simp
+          suffices h: __discr.1.val + i19.val ≤ 2 ^ 128 - 2 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+          · scalar_tac
+          · -- BEGIN TASK
+            suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+            · -- BEGIN TASK
+              rw[i19_post]
+              expand a_bounds with 5
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+              rw[__discr_post_2]
+              apply Nat.div_lt_of_lt_mul
+              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                simp
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i18.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                      2 ^ 52 *  ((constants.L)[0]!).val - 2
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[i18_post,i16_post]
+                clear this i19_post __discr_post_2 __discr_post_1
+                rename' __discr => discr0
+                have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                  simp[i17_post, i3_post]
+                  have : 0< ((constants.L)[1]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  rw[__discr_post_1]
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i14.val + i15.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+                · scalar_tac
+                · -- BEGIN TASK
+                  rw[i14_post, i13_post, i15_post]
+                  have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                    simp[i15_post, i8_post]
+                    have : 0< ((constants.L)[2]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    rename' __discr_post_1 => __discr_post_3
+                    rw[__discr_post_1]
+                    apply Nat.mod_lt
+                    simp
+                  have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                  suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                  · -- BEGIN TASK
+                    have :=Nat.add_le_add h (le_of_lt this)
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                          rw[__discr_post_2]
+                          apply Nat.div_le_of_le_mul
+                          have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                            simp
+                            have : 0< ((constants.L)[0]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            rw[__discr_post_1]
+                            apply Nat.mod_lt
+                            simp
+                          suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                          2 ^ 52 *  ((constants.L)[0]!).val
+                          · -- BEGIN TASK
+                            scalar_tac
+                            -- END TASK
+                          · -- BEGIN TASK
+                            rw[i5_post]
+                            have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                              simp[i4_post, i3_post]
+                              have : 0< ((constants.L)[1]!).val := by
+                                unfold constants.L
+                                decide
+                              simp at this
+                              apply (Nat.mul_lt_mul_right this).mpr
+                              rename' __discr_post_1=>  __discr1
+                              rename' __discr_post_1=>  __discr2
+                              rw[__discr_post_1]
+                              apply Nat.mod_lt
+                              simp
+                            suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                            · -- BEGIN TASK
+                              scalar_tac
+                              -- END TASK
+                            · -- BEGIN TASK
+                              rw[i2_post]
+                              rename' __discr=>  discr1
+                              rename' __discr=>  discr2
+                              suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                              · -- BEGIN TASK
+                                have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                simp at this
+                                simp[i1_post]
+                                apply le_trans this
+                                scalar_tac
+                                -- END TASK
+                              · -- BEGIN TASK
+                                rename' __discr_post_1=>  __discr1
+                                rename' __discr_post_2=>  __discr2
+                                rename' __discr_post_2=>  __discr3
+                                rename' __discr_post_1=>  __discr4
+
+                                rw[__discr_post_2]
+                                apply Nat.div_le_of_le_mul
+                                have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                  simp
+                                  have : 0< ((constants.L)[0]!).val := by
+                                    unfold constants.L
+                                    decide
+                                  simp at this
+                                  apply (Nat.mul_lt_mul_right this).mpr
+                                  rw[__discr_post_1]
+                                  apply Nat.mod_lt
+                                  simp
+                                suffices h: i.val ≤  2 ^ 52 *
+                                  (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                  5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                · -- BEGIN TASK
+                                  scalar_tac
+                                  -- END TASK
+                                · -- BEGIN TASK
+                                  rw[i_post]
+                                  scalar_tac
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+
+              -- END TASK
+
+
+            -- END TASK
+
+
+
+
+          -- END TASK
+        -- END TASK
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i27_post, i25_post]
+    have : i26.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+      simp[i26_post, i3_post]
+      have : 0< ((constants.L)[1]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+
+    suffices h: i23.val + i24.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+        rw[i23_post]
+        have : i24.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+          simp[i24_post, i8_post]
+          have : 0< ((constants.L)[2]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          simp_all
+          apply Nat.mod_lt
+          simp
+        suffices h: i20.val + i22.val ≤ 2 ^ 128 - 2 ^ 102 - 2 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+          rw[i20_post]
+          have : i22.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+            simp[i22_post, i21_post]
+            have : 0< ((constants.L)[4]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            simp_all
+            apply Nat.mod_lt
+            simp
+
+          suffices h: __discr.1.val + i19.val ≤ 2 ^ 128 - 2 ^ 102 - 2 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+          · scalar_tac
+          · -- BEGIN TASK
+            suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+            · -- BEGIN TASK
+              rw[i19_post]
+              expand a_bounds with 5
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+              rw[__discr_post_2]
+              apply Nat.div_lt_of_lt_mul
+              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                simp
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i18.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                      2 ^ 52 *  ((constants.L)[0]!).val - 2
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[i18_post,i16_post]
+                clear this i19_post __discr_post_2 __discr_post_1
+                rename' __discr => discr0
+                have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                  simp[i17_post, i3_post]
+                  have : 0< ((constants.L)[1]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  rw[__discr_post_1]
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i14.val + i15.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+                · scalar_tac
+                · -- BEGIN TASK
+                  rw[i14_post, i13_post, i15_post]
+                  have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                    simp[i15_post, i8_post]
+                    have : 0< ((constants.L)[2]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    rename' __discr_post_1 => __discr_post_3
+                    rw[__discr_post_1]
+                    apply Nat.mod_lt
+                    simp
+                  have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                  suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                  · -- BEGIN TASK
+                    have :=Nat.add_le_add h (le_of_lt this)
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                          rw[__discr_post_2]
+                          apply Nat.div_le_of_le_mul
+                          have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                            simp
+                            have : 0< ((constants.L)[0]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            rw[__discr_post_1]
+                            apply Nat.mod_lt
+                            simp
+                          suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                          2 ^ 52 *  ((constants.L)[0]!).val
+                          · -- BEGIN TASK
+                            scalar_tac
+                            -- END TASK
+                          · -- BEGIN TASK
+                            rw[i5_post]
+                            have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                              simp[i4_post, i3_post]
+                              have : 0< ((constants.L)[1]!).val := by
+                                unfold constants.L
+                                decide
+                              simp at this
+                              apply (Nat.mul_lt_mul_right this).mpr
+                              rename' __discr_post_1=>  __discr1
+                              rename' __discr_post_1=>  __discr2
+                              rw[__discr_post_1]
+                              apply Nat.mod_lt
+                              simp
+                            suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                            · -- BEGIN TASK
+                              scalar_tac
+                              -- END TASK
+                            · -- BEGIN TASK
+                              rw[i2_post]
+                              rename' __discr=>  discr1
+                              rename' __discr=>  discr2
+                              suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                              · -- BEGIN TASK
+                                have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                simp at this
+                                simp[i1_post]
+                                apply le_trans this
+                                scalar_tac
+                                -- END TASK
+                              · -- BEGIN TASK
+                                rename' __discr_post_1=>  __discr1
+                                rename' __discr_post_2=>  __discr2
+                                rename' __discr_post_2=>  __discr3
+                                rename' __discr_post_1=>  __discr4
+
+                                rw[__discr_post_2]
+                                apply Nat.div_le_of_le_mul
+                                have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                  simp
+                                  have : 0< ((constants.L)[0]!).val := by
+                                    unfold constants.L
+                                    decide
+                                  simp at this
+                                  apply (Nat.mul_lt_mul_right this).mpr
+                                  rw[__discr_post_1]
+                                  apply Nat.mod_lt
+                                  simp
+                                suffices h: i.val ≤  2 ^ 52 *
+                                  (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                  5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                · -- BEGIN TASK
+                                  scalar_tac
+                                  -- END TASK
+                                · -- BEGIN TASK
+                                  rw[i_post]
+                                  scalar_tac
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+
+              -- END TASK
+
+
+            -- END TASK
+
+
+
+
+          -- END TASK
+        -- END TASK
+
+    -- END TASK
+
+  · -- BEGIN TASK
+    suffices h: __discr.1.val < 2 ^ 128 - 5 * 2 ^ 124
+    · -- BEGIN TASK
+      rw[i28_post]
+      expand a_bounds with 9
+      scalar_tac
+      -- END TASK
+    · -- BEGIN TASK
+      rw[__discr_post_2]
+      apply Nat.div_lt_of_lt_mul
+      have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                simp
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+      suffices h: i27.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+              2 ^ 52 *  ((constants.L)[0]!).val - 2
+      · -- BEGIN TASK
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+        rw[i27_post, i25_post]
+        have : i26.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+          simp[i26_post, i3_post]
+          have : 0< ((constants.L)[1]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          simp_all
+          apply Nat.mod_lt
+          simp
+
+        suffices h: i23.val + i24.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+            rw[i23_post]
+            have : i24.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+              simp[i24_post, i8_post]
+              have : 0< ((constants.L)[2]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              simp_all
+              apply Nat.mod_lt
+              simp
+            suffices h: i20.val + i22.val ≤ 2 ^ 128 - 2 ^ 102 - 2 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+            · scalar_tac
+            · -- BEGIN TASK
+              rw[i20_post]
+              have : i22.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                simp[i22_post, i21_post]
+                have : 0< ((constants.L)[4]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                simp_all
+                apply Nat.mod_lt
+                simp
+              rename' __discr => discr00
+              rename' __discr_post_1 => discr00_post_1
+              rename' __discr_post_2 => discr00_post_2
+              suffices h: __discr.1.val + i19.val ≤ 2 ^ 128 - 2 ^ 102 - 2 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+              · scalar_tac
+              · -- BEGIN TASK
+                suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                · -- BEGIN TASK
+                  rw[i19_post]
+                  expand a_bounds with 5
+                  scalar_tac
+                  -- END TASK
+                · -- BEGIN TASK
+                  rw[__discr_post_2]
+                  apply Nat.div_lt_of_lt_mul
+                  have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                            simp
+                            have : 0< ((constants.L)[0]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            rw[__discr_post_1]
+                            apply Nat.mod_lt
+                            simp
+                  suffices h: i18.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                          2 ^ 52 *  ((constants.L)[0]!).val - 2
+                  · -- BEGIN TASK
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                    rw[i18_post,i16_post]
+                    clear this i19_post __discr_post_2 __discr_post_1
+                    rename' __discr => discr0
+                    have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                      simp[i17_post, i3_post]
+                      have : 0< ((constants.L)[1]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rw[__discr_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i14.val + i15.val ≤ 2 ^ 128 - 2 ^ 102 - 2 ^ 52 *  ((constants.L)[1]!).val
+                    · scalar_tac
+                    · -- BEGIN TASK
+                      rw[i14_post, i13_post, i15_post]
+                      have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                        simp[i15_post, i8_post]
+                        have : 0< ((constants.L)[2]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        rename' __discr_post_1 => __discr_post_3
+                        rw[__discr_post_1]
+                        apply Nat.mod_lt
+                        simp
+                      have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                      suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                      · -- BEGIN TASK
+                        scalar_tac
+                        -- END TASK
+                      · -- BEGIN TASK
+                              rw[__discr_post_2]
+                              apply Nat.div_le_of_le_mul
+                              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                simp
+                                have : 0< ((constants.L)[0]!).val := by
+                                  unfold constants.L
+                                  decide
+                                simp at this
+                                apply (Nat.mul_lt_mul_right this).mpr
+                                rw[__discr_post_1]
+                                apply Nat.mod_lt
+                                simp
+                              suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[0]!).val
+                              · -- BEGIN TASK
+                                scalar_tac
+                                -- END TASK
+                              · -- BEGIN TASK
+                                rw[i5_post]
+                                have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                  simp[i4_post, i3_post]
+                                  have : 0< ((constants.L)[1]!).val := by
+                                    unfold constants.L
+                                    decide
+                                  simp at this
+                                  apply (Nat.mul_lt_mul_right this).mpr
+                                  rename' __discr_post_1=>  __discr1
+                                  rename' __discr_post_1=>  __discr2
+                                  rw[__discr_post_1]
+                                  apply Nat.mod_lt
+                                  simp
+                                suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                · -- BEGIN TASK
+                                  scalar_tac
+                                  -- END TASK
+                                · -- BEGIN TASK
+                                  rw[i2_post]
+                                  rename' __discr=>  discr1
+                                  rename' __discr=>  discr2
+                                  suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                  · -- BEGIN TASK
+                                    have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                    simp at this
+                                    simp[i1_post]
+                                    apply le_trans this
+                                    scalar_tac
+                                    -- END TASK
+                                  · -- BEGIN TASK
+                                    rename' __discr_post_1=>  __discr1
+                                    rename' __discr_post_2=>  __discr2
+                                    rename' __discr_post_2=>  __discr3
+                                    rename' __discr_post_1=>  __discr4
+
+                                    rw[__discr_post_2]
+                                    apply Nat.div_le_of_le_mul
+                                    have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                      simp
+                                      have : 0< ((constants.L)[0]!).val := by
+                                        unfold constants.L
+                                        decide
+                                      simp at this
+                                      apply (Nat.mul_lt_mul_right this).mpr
+                                      rw[__discr_post_1]
+                                      apply Nat.mod_lt
+                                      simp
+                                    suffices h: i.val ≤  2 ^ 52 *
+                                      (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                      5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                    · -- BEGIN TASK
+                                      scalar_tac
+                                      -- END TASK
+                                    · -- BEGIN TASK
+                                      rw[i_post]
+                                      scalar_tac
+                                      -- END TASK
+                                    -- END TASK
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                    -- END TASK
+
+                  -- END TASK
+
+
+                -- END TASK
+
+
+
+
+              -- END TASK
+            -- END TASK
+
+        -- END TASK
+
+
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i29_post]
+    have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+      simp[i30_post, i21_post]
+      have : 0< ((constants.L)[4]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+
+    suffices h: ↑__discr.1 + i28.val ≤ 2 ^ 128 - 1 - 2 ^ 52 *  ((constants.L)[4]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      suffices h: ↑__discr.1  ≤ 2 ^ 128 - 1 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+      · expand a_bounds with 9
+        scalar_tac
+      · -- BEGIN TASK
+        rw[__discr_post_2, __discr_post_1]
+        apply Nat.div_le_of_le_mul
+        have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+          simp
+          have : 0< ((constants.L)[0]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i18.val ≤  2 ^ 128 - 1 -
+            2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+        · -- BEGIN TASK
+          scalar_tac
+          -- END TASK
+        · -- BEGIN TASK
+                    rw[i18_post,i16_post]
+                    clear this i19_post __discr_post_2 __discr_post_1
+                    rename' __discr => discr0
+                    rename' __discr => discr1
+                    rename' __discr => discr2
+                    rename' __discr_post_2 => __discr1_post_2
+                    rename' __discr_post_2 => __discr2_post_2
+                    rename' __discr_post_1 => __discr1_post_1
+                    rename' __discr_post_1 => __discr2_post_1
+                    have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                      simp[i17_post, i3_post]
+                      have : 0< ((constants.L)[1]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rw[__discr2_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i14.val + i15.val ≤ 2 ^ 128 - 1 -
+                      2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                      2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                    · scalar_tac
+                    · -- BEGIN TASK
+                      rw[i14_post, i13_post, i15_post]
+                      have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                        simp[i15_post, i8_post]
+                        have : 0< ((constants.L)[2]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        rename' __discr_post_1 => __discr_post_3
+                        rw[__discr_post_3]
+                        apply Nat.mod_lt
+                        simp
+                      have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                      suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                      · -- BEGIN TASK
+                        scalar_tac
+                        -- END TASK
+                      · -- BEGIN TASK
+                              rename' __discr_post_2 => h_discr_post_2
+                              rename' __discr_post_2 => h_discr_post_3
+                              rw[h_discr_post_2]
+                              apply Nat.div_le_of_le_mul
+                              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                simp
+                                have : 0< ((constants.L)[0]!).val := by
+                                  unfold constants.L
+                                  decide
+                                simp at this
+                                apply (Nat.mul_lt_mul_right this).mpr
+                                rw[__discr_post_1]
+                                apply Nat.mod_lt
+                                simp
+                              suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[0]!).val
+                              · -- BEGIN TASK
+                                have := Nat.add_le_add h (le_of_lt this)
+                                simp at this
+                                scalar_tac
+                                -- END TASK
+                              · -- BEGIN TASK
+                                rw[i5_post]
+                                have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                  simp[i4_post, i3_post]
+                                  have : 0< ((constants.L)[1]!).val := by
+                                    unfold constants.L
+                                    decide
+                                  simp at this
+                                  apply (Nat.mul_lt_mul_right this).mpr
+                                  rename' __discr_post_1=>  __discr1
+                                  rename' __discr_post_1=>  __discr2
+                                  rw[__discr2]
+                                  apply Nat.mod_lt
+                                  simp
+                                suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                · -- BEGIN TASK
+                                  scalar_tac
+                                  -- END TASK
+                                · -- BEGIN TASK
+                                  rw[i2_post]
+                                  rename' __discr=>  discr1
+                                  suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                  2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                  · -- BEGIN TASK
+                                    have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                    simp at this
+                                    simp[i1_post]
+                                    apply le_trans this
+                                    scalar_tac
+                                    -- END TASK
+                                  · -- BEGIN TASK
+                                    rename' __discr_post_1=>  __discr1
+                                    rename' __discr_post_1=>  __discr4
+
+                                    rw[h_discr_post_3]
+                                    apply Nat.div_le_of_le_mul
+                                    have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                      simp
+                                      have : 0< ((constants.L)[0]!).val := by
+                                        unfold constants.L
+                                        decide
+                                      simp at this
+                                      apply (Nat.mul_lt_mul_right this).mpr
+                                      rw[__discr4]
+                                      apply Nat.mod_lt
+                                      simp
+                                    suffices h: i.val ≤  2 ^ 52 *
+                                      (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                      5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                    · -- BEGIN TASK
+                                      scalar_tac
+                                      -- END TASK
+                                    · -- BEGIN TASK
+                                      rw[i_post]
+                                      scalar_tac
+                                      -- END TASK
+                                    -- END TASK
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                    -- END TASK
+
+                  -- END TASK
+
+
+        -- END TASK
+      -- END TASK
+    -- END TASK
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i31_post]
+    have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+      simp[i32_post, i8_post]
+      have : 0< ((constants.L)[2]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+    suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      rw[i29_post]
+      have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+        simp[i30_post, i21_post]
+        have : 0< ((constants.L)[4]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        simp_all
+        apply Nat.mod_lt
+        simp
+
+      suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+      · scalar_tac
+      · -- BEGIN TASK
+        suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+        · expand a_bounds with 9
+          scalar_tac
+        · -- BEGIN TASK
+          rw[__discr_post_2, __discr_post_1]
+          apply Nat.div_le_of_le_mul
+          have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+            simp
+            have : 0< ((constants.L)[0]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            rw[__discr_post_1]
+            apply Nat.mod_lt
+            simp
+          suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val -
+              2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+          · -- BEGIN TASK
+            scalar_tac
+            -- END TASK
+          · -- BEGIN TASK
+                      rw[i18_post,i16_post]
+                      clear this i19_post __discr_post_2 __discr_post_1
+                      rename' __discr => discr0
+                      rename' __discr => discr1
+                      rename' __discr => discr2
+                      rename' __discr_post_2 => __discr1_post_2
+                      rename' __discr_post_2 => __discr2_post_2
+                      rename' __discr_post_1 => __discr1_post_1
+                      rename' __discr_post_1 => __discr2_post_1
+                      have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                        simp[i17_post, i3_post]
+                        have : 0< ((constants.L)[1]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        rw[__discr2_post_1]
+                        apply Nat.mod_lt
+                        simp
+                      suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val -
+                        2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                        2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                      · scalar_tac
+                      · -- BEGIN TASK
+                        rw[i14_post, i13_post, i15_post]
+                        have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                          simp[i15_post, i8_post]
+                          have : 0< ((constants.L)[2]!).val := by
+                            unfold constants.L
+                            decide
+                          simp at this
+                          apply (Nat.mul_lt_mul_right this).mpr
+                          rename' __discr_post_1 => __discr_post_3
+                          rw[__discr_post_3]
+                          apply Nat.mod_lt
+                          simp
+                        have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                        suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                        · -- BEGIN TASK
+                          scalar_tac
+                          -- END TASK
+                        · -- BEGIN TASK
+                                rename' __discr_post_2 => h_discr_post_2
+                                rename' __discr_post_2 => h_discr_post_3
+                                rw[h_discr_post_2]
+                                apply Nat.div_le_of_le_mul
+                                have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                  simp
+                                  have : 0< ((constants.L)[0]!).val := by
+                                    unfold constants.L
+                                    decide
+                                  simp at this
+                                  apply (Nat.mul_lt_mul_right this).mpr
+                                  rw[__discr_post_1]
+                                  apply Nat.mod_lt
+                                  simp
+                                suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                2 ^ 52 *  ((constants.L)[0]!).val
+                                · -- BEGIN TASK
+                                  have := Nat.add_le_add h (le_of_lt this)
+                                  simp at this
+                                  scalar_tac
+                                  -- END TASK
+                                · -- BEGIN TASK
+                                  rw[i5_post]
+                                  have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                    simp[i4_post, i3_post]
+                                    have : 0< ((constants.L)[1]!).val := by
+                                      unfold constants.L
+                                      decide
+                                    simp at this
+                                    apply (Nat.mul_lt_mul_right this).mpr
+                                    rename' __discr_post_1=>  __discr1
+                                    rename' __discr_post_1=>  __discr2
+                                    rw[__discr2]
+                                    apply Nat.mod_lt
+                                    simp
+                                  suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                    2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                  · -- BEGIN TASK
+                                    scalar_tac
+                                    -- END TASK
+                                  · -- BEGIN TASK
+                                    rw[i2_post]
+                                    rename' __discr=>  discr1
+                                    suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                    2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                    · -- BEGIN TASK
+                                      have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                      simp at this
+                                      simp[i1_post]
+                                      apply le_trans this
+                                      scalar_tac
+                                      -- END TASK
+                                    · -- BEGIN TASK
+                                      rename' __discr_post_1=>  __discr1
+                                      rename' __discr_post_1=>  __discr4
+
+                                      rw[h_discr_post_3]
+                                      apply Nat.div_le_of_le_mul
+                                      have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                        simp
+                                        have : 0< ((constants.L)[0]!).val := by
+                                          unfold constants.L
+                                          decide
+                                        simp at this
+                                        apply (Nat.mul_lt_mul_right this).mpr
+                                        rw[__discr4]
+                                        apply Nat.mod_lt
+                                        simp
+                                      suffices h: i.val ≤  2 ^ 52 *
+                                        (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                        5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                      · -- BEGIN TASK
+                                        scalar_tac
+                                        -- END TASK
+                                      · -- BEGIN TASK
+                                        rw[i_post]
+                                        scalar_tac
+                                        -- END TASK
+                                      -- END TASK
+                                    -- END TASK
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+
+                    -- END TASK
+
+
+          -- END TASK
+        -- END TASK
+      -- END TASK
+      -- END TASK
+
+
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i33_post]
+    have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+      simp[i34_post, i3_post]
+      have : 0< ((constants.L)[1]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+    suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      rw[i31_post]
+      have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+        simp[i32_post, i8_post]
+        have : 0< ((constants.L)[2]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        simp_all
+        apply Nat.mod_lt
+        simp
+      suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+      · scalar_tac
+      · -- BEGIN TASK
+        rw[i29_post]
+        have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+          simp[i30_post, i21_post]
+          have : 0< ((constants.L)[4]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          simp_all
+          apply Nat.mod_lt
+          simp
+
+        suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+          suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+          · expand a_bounds with 9
+            scalar_tac
+          · -- BEGIN TASK
+            rw[__discr_post_2, __discr_post_1]
+            apply Nat.div_le_of_le_mul
+            have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+              simp
+              have : 0< ((constants.L)[0]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              rw[__discr_post_1]
+              apply Nat.mod_lt
+              simp
+            suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+            · -- BEGIN TASK
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+                        rw[i18_post,i16_post]
+                        clear this i19_post __discr_post_2 __discr_post_1
+                        rename' __discr => discr0
+                        rename' __discr => discr1
+                        rename' __discr => discr2
+                        rename' __discr_post_2 => __discr1_post_2
+                        rename' __discr_post_2 => __discr2_post_2
+                        rename' __discr_post_1 => __discr1_post_1
+                        rename' __discr_post_1 => __discr2_post_1
+                        have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                          simp[i17_post, i3_post]
+                          have : 0< ((constants.L)[1]!).val := by
+                            unfold constants.L
+                            decide
+                          simp at this
+                          apply (Nat.mul_lt_mul_right this).mpr
+                          rw[__discr2_post_1]
+                          apply Nat.mod_lt
+                          simp
+                        suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                          2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                          2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                        · scalar_tac
+                        · -- BEGIN TASK
+                          rw[i14_post, i13_post, i15_post]
+                          have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                            simp[i15_post, i8_post]
+                            have : 0< ((constants.L)[2]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            rename' __discr_post_1 => __discr_post_3
+                            rw[__discr_post_3]
+                            apply Nat.mod_lt
+                            simp
+                          have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                          suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                          · -- BEGIN TASK
+                            scalar_tac
+                            -- END TASK
+                          · -- BEGIN TASK
+                                  rename' __discr_post_2 => h_discr_post_2
+                                  rename' __discr_post_2 => h_discr_post_3
+                                  rw[h_discr_post_2]
+                                  apply Nat.div_le_of_le_mul
+                                  have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                    simp
+                                    have : 0< ((constants.L)[0]!).val := by
+                                      unfold constants.L
+                                      decide
+                                    simp at this
+                                    apply (Nat.mul_lt_mul_right this).mpr
+                                    rw[__discr_post_1]
+                                    apply Nat.mod_lt
+                                    simp
+                                  suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                  2 ^ 52 *  ((constants.L)[0]!).val
+                                  · -- BEGIN TASK
+                                    scalar_tac
+                                    -- END TASK
+                                  · -- BEGIN TASK
+                                    rw[i5_post]
+                                    have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                      simp[i4_post, i3_post]
+                                      have : 0< ((constants.L)[1]!).val := by
+                                        unfold constants.L
+                                        decide
+                                      simp at this
+                                      apply (Nat.mul_lt_mul_right this).mpr
+                                      rename' __discr_post_1=>  __discr1
+                                      rename' __discr_post_1=>  __discr2
+                                      rw[__discr2]
+                                      apply Nat.mod_lt
+                                      simp
+                                    suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                      2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                    · -- BEGIN TASK
+                                      scalar_tac
+                                      -- END TASK
+                                    · -- BEGIN TASK
+                                      rw[i2_post]
+                                      rename' __discr=>  discr1
+                                      suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                      2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                      · -- BEGIN TASK
+                                        have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                        simp at this
+                                        simp[i1_post]
+                                        apply le_trans this
+                                        scalar_tac
+                                        -- END TASK
+                                      · -- BEGIN TASK
+                                        rename' __discr_post_1=>  __discr1
+                                        rename' __discr_post_1=>  __discr4
+
+                                        rw[h_discr_post_3]
+                                        apply Nat.div_le_of_le_mul
+                                        have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                          simp
+                                          have : 0< ((constants.L)[0]!).val := by
+                                            unfold constants.L
+                                            decide
+                                          simp at this
+                                          apply (Nat.mul_lt_mul_right this).mpr
+                                          rw[__discr4]
+                                          apply Nat.mod_lt
+                                          simp
+                                        suffices h: i.val ≤  2 ^ 52 *
+                                          (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                          5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                        · -- BEGIN TASK
+                                          scalar_tac
+                                          -- END TASK
+                                        · -- BEGIN TASK
+                                          rw[i_post]
+                                          scalar_tac
+                                          -- END TASK
+                                        -- END TASK
+                                      -- END TASK
+                                    -- END TASK
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+
+                      -- END TASK
+
+
+            -- END TASK
+          -- END TASK
+        -- END TASK
+        -- END TASK
+
+
+
+      -- END TASK
+
+    -- END TASK
+  · -- BEGIN TASK
+    suffices h: __discr.1.val < 2 ^128 - 5 * 2 ^ 124
+    · expand a_bounds with 9; scalar_tac
+    · rw[__discr_post_2]
+      apply Nat.div_lt_of_lt_mul
+      suffices h: i33.val + i34.val < 2 ^ 128
+      · rw[i35_post];scalar_tac
+      · -- BEGIN TASK
+        rw[i33_post]
+        have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+          simp[i34_post, i3_post]
+          have : 0< ((constants.L)[1]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          simp_all
+          apply Nat.mod_lt
+          simp
+        suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+          clear this __discr_post_1 __discr_post_2
+          rename' __discr => x
+          rw[i31_post]
+          have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+            simp[i32_post, i8_post]
+            have : 0< ((constants.L)[2]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            simp_all
+            apply Nat.mod_lt
+            simp
+          suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+          · scalar_tac
+          · -- BEGIN TASK
+            rw[i29_post]
+            have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+              simp[i30_post, i21_post]
+              have : 0< ((constants.L)[4]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              simp_all
+              apply Nat.mod_lt
+              simp
+
+            suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+            · scalar_tac
+            · -- BEGIN TASK
+              suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+              · expand a_bounds with 9
+                scalar_tac
+              · -- BEGIN TASK
+                rw[__discr_post_2, __discr_post_1]
+                apply Nat.div_le_of_le_mul
+                have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                  simp
+                  have : 0< ((constants.L)[0]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  rw[__discr_post_1]
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                    2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+                · -- BEGIN TASK
+                  scalar_tac
+                  -- END TASK
+                · -- BEGIN TASK
+                            rw[i18_post,i16_post]
+                            clear this i19_post __discr_post_2 __discr_post_1
+                            rename' __discr => discr0
+                            rename' __discr => discr1
+                            rename' __discr => discr2
+                            rename' __discr_post_2 => __discr1_post_2
+                            rename' __discr_post_2 => __discr2_post_2
+                            rename' __discr_post_1 => __discr1_post_1
+                            rename' __discr_post_1 => __discr2_post_1
+                            have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                              simp[i17_post, i3_post]
+                              have : 0< ((constants.L)[1]!).val := by
+                                unfold constants.L
+                                decide
+                              simp at this
+                              apply (Nat.mul_lt_mul_right this).mpr
+                              rw[__discr2_post_1]
+                              apply Nat.mod_lt
+                              simp
+                            suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                              2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                            · scalar_tac
+                            · -- BEGIN TASK
+                              rw[i14_post, i13_post, i15_post]
+                              have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                                simp[i15_post, i8_post]
+                                have : 0< ((constants.L)[2]!).val := by
+                                  unfold constants.L
+                                  decide
+                                simp at this
+                                apply (Nat.mul_lt_mul_right this).mpr
+                                rename' __discr_post_1 => __discr_post_3
+                                rw[__discr_post_3]
+                                apply Nat.mod_lt
+                                simp
+                              have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                              suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                              · -- BEGIN TASK
+                                scalar_tac
+                                -- END TASK
+                              · -- BEGIN TASK
+                                      rename' __discr_post_2 => h_discr_post_2
+                                      rename' __discr_post_2 => h_discr_post_3
+                                      rw[h_discr_post_2]
+                                      apply Nat.div_le_of_le_mul
+                                      have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                        simp
+                                        have : 0< ((constants.L)[0]!).val := by
+                                          unfold constants.L
+                                          decide
+                                        simp at this
+                                        apply (Nat.mul_lt_mul_right this).mpr
+                                        rw[__discr_post_1]
+                                        apply Nat.mod_lt
+                                        simp
+                                      suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                      2 ^ 52 *  ((constants.L)[0]!).val
+                                      · -- BEGIN TASK
+                                        scalar_tac
+                                        -- END TASK
+                                      · -- BEGIN TASK
+                                        rw[i5_post]
+                                        have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                          simp[i4_post, i3_post]
+                                          have : 0< ((constants.L)[1]!).val := by
+                                            unfold constants.L
+                                            decide
+                                          simp at this
+                                          apply (Nat.mul_lt_mul_right this).mpr
+                                          rename' __discr_post_1=>  __discr1
+                                          rename' __discr_post_1=>  __discr2
+                                          rw[__discr2]
+                                          apply Nat.mod_lt
+                                          simp
+                                        suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                          2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                        · -- BEGIN TASK
+                                          scalar_tac
+                                          -- END TASK
+                                        · -- BEGIN TASK
+                                          rw[i2_post]
+                                          rename' __discr=>  discr1
+                                          suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                          2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                          · -- BEGIN TASK
+                                            have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                            simp at this
+                                            simp[i1_post]
+                                            apply le_trans this
+                                            scalar_tac
+                                            -- END TASK
+                                          · -- BEGIN TASK
+                                            rename' __discr_post_1=>  __discr1
+                                            rename' __discr_post_1=>  __discr4
+
+                                            rw[h_discr_post_3]
+                                            apply Nat.div_le_of_le_mul
+                                            have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                              simp
+                                              have : 0< ((constants.L)[0]!).val := by
+                                                unfold constants.L
+                                                decide
+                                              simp at this
+                                              apply (Nat.mul_lt_mul_right this).mpr
+                                              rw[__discr4]
+                                              apply Nat.mod_lt
+                                              simp
+                                            suffices h: i.val ≤  2 ^ 52 *
+                                              (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                              5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                            · -- BEGIN TASK
+                                              scalar_tac
+                                              -- END TASK
+                                            · -- BEGIN TASK
+                                              rw[i_post]
+                                              scalar_tac
+                                              -- END TASK
+                                            -- END TASK
+                                          -- END TASK
+                                        -- END TASK
+                                      -- END TASK
+                                    -- END TASK
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+
+                          -- END TASK
+
+
+                -- END TASK
+              -- END TASK
+            -- END TASK
+            -- END TASK
+
+
+
+          -- END TASK
+
+        -- END TASK
+
+
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i37_post]
+    have : i38.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+      simp[i38_post, i21_post]
+      have : 0< ((constants.L)[4]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+
+    suffices h: __discr.1.val + i36.val ≤ 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+      · -- BEGIN TASK
+        rw[i36_post]
+        expand a_bounds with 9
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+        rw[__discr_post_2]
+        apply Nat.div_lt_of_lt_mul
+        have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+          simp
+          have : 0< ((constants.L)[0]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i35.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                2 ^ 52 *  ((constants.L)[0]!).val - 2
+        · -- BEGIN TASK
+          scalar_tac
+          -- END TASK
+        · -- BEGIN TASK
+          suffices h: i33.val + i34.val < 2 ^ 128
+          · rw[i35_post];scalar_tac
+          · -- BEGIN TASK
+            rw[i33_post]
+            have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+              simp[i34_post, i3_post]
+              have : 0< ((constants.L)[1]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              simp_all
+              apply Nat.mod_lt
+              simp
+            suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+            · scalar_tac
+            · -- BEGIN TASK
+              clear this __discr_post_1 __discr_post_2
+              rename' __discr => x
+              rw[i31_post]
+              have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                simp[i32_post, i8_post]
+                have : 0< ((constants.L)[2]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                simp_all
+                apply Nat.mod_lt
+                simp
+              suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+              · scalar_tac
+              · -- BEGIN TASK
+                rw[i29_post]
+                have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                  simp[i30_post, i21_post]
+                  have : 0< ((constants.L)[4]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  simp_all
+                  apply Nat.mod_lt
+                  simp
+
+                suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                · scalar_tac
+                · -- BEGIN TASK
+                  suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                  · expand a_bounds with 9
+                    scalar_tac
+                  · -- BEGIN TASK
+                    rw[__discr_post_2, __discr_post_1]
+                    apply Nat.div_le_of_le_mul
+                    have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                      simp
+                      have : 0< ((constants.L)[0]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rw[__discr_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                        2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+                    · -- BEGIN TASK
+                      scalar_tac
+                      -- END TASK
+                    · -- BEGIN TASK
+                                rw[i18_post,i16_post]
+                                clear this i19_post __discr_post_2 __discr_post_1
+                                rename' __discr => discr0
+                                rename' __discr => discr1
+                                rename' __discr => discr2
+                                rename' __discr_post_2 => __discr1_post_2
+                                rename' __discr_post_2 => __discr2_post_2
+                                rename' __discr_post_1 => __discr1_post_1
+                                rename' __discr_post_1 => __discr2_post_1
+                                have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                  simp[i17_post, i3_post]
+                                  have : 0< ((constants.L)[1]!).val := by
+                                    unfold constants.L
+                                    decide
+                                  simp at this
+                                  apply (Nat.mul_lt_mul_right this).mpr
+                                  rw[__discr2_post_1]
+                                  apply Nat.mod_lt
+                                  simp
+                                suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                  2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                                  2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                                · scalar_tac
+                                · -- BEGIN TASK
+                                  rw[i14_post, i13_post, i15_post]
+                                  have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                                    simp[i15_post, i8_post]
+                                    have : 0< ((constants.L)[2]!).val := by
+                                      unfold constants.L
+                                      decide
+                                    simp at this
+                                    apply (Nat.mul_lt_mul_right this).mpr
+                                    rename' __discr_post_1 => __discr_post_3
+                                    rw[__discr_post_3]
+                                    apply Nat.mod_lt
+                                    simp
+                                  have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                                  suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                                  · -- BEGIN TASK
+                                    scalar_tac
+                                    -- END TASK
+                                  · -- BEGIN TASK
+                                          rename' __discr_post_2 => h_discr_post_2
+                                          rename' __discr_post_2 => h_discr_post_3
+                                          rw[h_discr_post_2]
+                                          apply Nat.div_le_of_le_mul
+                                          have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                            simp
+                                            have : 0< ((constants.L)[0]!).val := by
+                                              unfold constants.L
+                                              decide
+                                            simp at this
+                                            apply (Nat.mul_lt_mul_right this).mpr
+                                            rw[__discr_post_1]
+                                            apply Nat.mod_lt
+                                            simp
+                                          suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                          2 ^ 52 *  ((constants.L)[0]!).val
+                                          · -- BEGIN TASK
+                                            scalar_tac
+                                            -- END TASK
+                                          · -- BEGIN TASK
+                                            rw[i5_post]
+                                            have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                              simp[i4_post, i3_post]
+                                              have : 0< ((constants.L)[1]!).val := by
+                                                unfold constants.L
+                                                decide
+                                              simp at this
+                                              apply (Nat.mul_lt_mul_right this).mpr
+                                              rename' __discr_post_1=>  __discr1
+                                              rename' __discr_post_1=>  __discr2
+                                              rw[__discr2]
+                                              apply Nat.mod_lt
+                                              simp
+                                            suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                              2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                            · -- BEGIN TASK
+                                              scalar_tac
+                                              -- END TASK
+                                            · -- BEGIN TASK
+                                              rw[i2_post]
+                                              rename' __discr=>  discr1
+                                              suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                              2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                              · -- BEGIN TASK
+                                                have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                                simp at this
+                                                simp[i1_post]
+                                                apply le_trans this
+                                                scalar_tac
+                                                -- END TASK
+                                              · -- BEGIN TASK
+                                                rename' __discr_post_1=>  __discr1
+                                                rename' __discr_post_1=>  __discr4
+
+                                                rw[h_discr_post_3]
+                                                apply Nat.div_le_of_le_mul
+                                                have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                  simp
+                                                  have : 0< ((constants.L)[0]!).val := by
+                                                    unfold constants.L
+                                                    decide
+                                                  simp at this
+                                                  apply (Nat.mul_lt_mul_right this).mpr
+                                                  rw[__discr4]
+                                                  apply Nat.mod_lt
+                                                  simp
+                                                suffices h: i.val ≤  2 ^ 52 *
+                                                  (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                                  5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                                · -- BEGIN TASK
+                                                  scalar_tac
+                                                  -- END TASK
+                                                · -- BEGIN TASK
+                                                  rw[i_post]
+                                                  scalar_tac
+                                                  -- END TASK
+                                                -- END TASK
+                                              -- END TASK
+                                            -- END TASK
+                                          -- END TASK
+                                        -- END TASK
+                                      -- END TASK
+                                    -- END TASK
+                                  -- END TASK
+                                -- END TASK
+
+                              -- END TASK
+
+
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+                -- END TASK
+
+
+
+              -- END TASK
+
+            -- END TASK
+
+
+
+        -- END TASK
+
+        -- END TASK
+
+
+      -- END TASK
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i39_post]
+    have : i40.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+      simp[i40_post, i8_post]
+      have : 0< ((constants.L)[2]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+    suffices h: i37.val + i38.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      rw[i37_post]
+      have : i38.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+        simp[i38_post, i21_post]
+        have : 0< ((constants.L)[4]!).val := by
+          unfold constants.L
+          decide
+        simp at this
+        apply (Nat.mul_lt_mul_right this).mpr
+        simp_all
+        apply Nat.mod_lt
+        simp
+
+      suffices h: __discr.1.val + i36.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+      · scalar_tac
+      · -- BEGIN TASK
+        suffices h: __discr.1.val < 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+        · -- BEGIN TASK
+          rw[i36_post]
+          expand a_bounds with 9
+          scalar_tac
+          -- END TASK
+        · -- BEGIN TASK
+          rw[__discr_post_2]
+          apply Nat.div_lt_of_lt_mul
+          have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+            simp
+            have : 0< ((constants.L)[0]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            rw[__discr_post_1]
+            apply Nat.mod_lt
+            simp
+          suffices h: i35.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                  2 ^ 52 *  ((constants.L)[0]!).val - 2
+          · -- BEGIN TASK
+            scalar_tac
+            -- END TASK
+          · -- BEGIN TASK
+            suffices h: i33.val + i34.val < 2 ^ 128
+            · rw[i35_post];scalar_tac
+            · -- BEGIN TASK
+              rw[i33_post]
+              have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                simp[i34_post, i3_post]
+                have : 0< ((constants.L)[1]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                simp_all
+                apply Nat.mod_lt
+                simp
+              suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+              · scalar_tac
+              · -- BEGIN TASK
+                clear this __discr_post_1 __discr_post_2
+                rename' __discr => x
+                rw[i31_post]
+                have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                  simp[i32_post, i8_post]
+                  have : 0< ((constants.L)[2]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  simp_all
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+                · scalar_tac
+                · -- BEGIN TASK
+                  rw[i29_post]
+                  have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                    simp[i30_post, i21_post]
+                    have : 0< ((constants.L)[4]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    simp_all
+                    apply Nat.mod_lt
+                    simp
+
+                  suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                  · scalar_tac
+                  · -- BEGIN TASK
+                    suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                    · expand a_bounds with 9
+                      scalar_tac
+                    · -- BEGIN TASK
+                      rw[__discr_post_2, __discr_post_1]
+                      apply Nat.div_le_of_le_mul
+                      have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                        simp
+                        have : 0< ((constants.L)[0]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        rw[__discr_post_1]
+                        apply Nat.mod_lt
+                        simp
+                      suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                          2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+                      · -- BEGIN TASK
+                        scalar_tac
+                        -- END TASK
+                      · -- BEGIN TASK
+                                  rw[i18_post,i16_post]
+                                  clear this i19_post __discr_post_2 __discr_post_1
+                                  rename' __discr => discr0
+                                  rename' __discr => discr1
+                                  rename' __discr => discr2
+                                  rename' __discr_post_2 => __discr1_post_2
+                                  rename' __discr_post_2 => __discr2_post_2
+                                  rename' __discr_post_1 => __discr1_post_1
+                                  rename' __discr_post_1 => __discr2_post_1
+                                  have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                    simp[i17_post, i3_post]
+                                    have : 0< ((constants.L)[1]!).val := by
+                                      unfold constants.L
+                                      decide
+                                    simp at this
+                                    apply (Nat.mul_lt_mul_right this).mpr
+                                    rw[__discr2_post_1]
+                                    apply Nat.mod_lt
+                                    simp
+                                  suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                    2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                                    2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                                  · scalar_tac
+                                  · -- BEGIN TASK
+                                    rw[i14_post, i13_post, i15_post]
+                                    have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                                      simp[i15_post, i8_post]
+                                      have : 0< ((constants.L)[2]!).val := by
+                                        unfold constants.L
+                                        decide
+                                      simp at this
+                                      apply (Nat.mul_lt_mul_right this).mpr
+                                      rename' __discr_post_1 => __discr_post_3
+                                      rw[__discr_post_3]
+                                      apply Nat.mod_lt
+                                      simp
+                                    have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                                    suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                                    · -- BEGIN TASK
+                                      scalar_tac
+                                      -- END TASK
+                                    · -- BEGIN TASK
+                                            rename' __discr_post_2 => h_discr_post_2
+                                            rename' __discr_post_2 => h_discr_post_3
+                                            rw[h_discr_post_2]
+                                            apply Nat.div_le_of_le_mul
+                                            have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                              simp
+                                              have : 0< ((constants.L)[0]!).val := by
+                                                unfold constants.L
+                                                decide
+                                              simp at this
+                                              apply (Nat.mul_lt_mul_right this).mpr
+                                              rw[__discr_post_1]
+                                              apply Nat.mod_lt
+                                              simp
+                                            suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                            2 ^ 52 *  ((constants.L)[0]!).val
+                                            · -- BEGIN TASK
+                                              scalar_tac
+                                              -- END TASK
+                                            · -- BEGIN TASK
+                                              rw[i5_post]
+                                              have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                                simp[i4_post, i3_post]
+                                                have : 0< ((constants.L)[1]!).val := by
+                                                  unfold constants.L
+                                                  decide
+                                                simp at this
+                                                apply (Nat.mul_lt_mul_right this).mpr
+                                                rename' __discr_post_1=>  __discr1
+                                                rename' __discr_post_1=>  __discr2
+                                                rw[__discr2]
+                                                apply Nat.mod_lt
+                                                simp
+                                              suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                              · -- BEGIN TASK
+                                                scalar_tac
+                                                -- END TASK
+                                              · -- BEGIN TASK
+                                                rw[i2_post]
+                                                rename' __discr=>  discr1
+                                                suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                                · -- BEGIN TASK
+                                                  have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                                  simp at this
+                                                  simp[i1_post]
+                                                  apply le_trans this
+                                                  scalar_tac
+                                                  -- END TASK
+                                                · -- BEGIN TASK
+                                                  rename' __discr_post_1=>  __discr1
+                                                  rename' __discr_post_1=>  __discr4
+
+                                                  rw[h_discr_post_3]
+                                                  apply Nat.div_le_of_le_mul
+                                                  have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                    simp
+                                                    have : 0< ((constants.L)[0]!).val := by
+                                                      unfold constants.L
+                                                      decide
+                                                    simp at this
+                                                    apply (Nat.mul_lt_mul_right this).mpr
+                                                    rw[__discr4]
+                                                    apply Nat.mod_lt
+                                                    simp
+                                                  suffices h: i.val ≤  2 ^ 52 *
+                                                    (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                                    5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                                  · -- BEGIN TASK
+                                                    scalar_tac
+                                                    -- END TASK
+                                                  · -- BEGIN TASK
+                                                    rw[i_post]
+                                                    scalar_tac
+                                                    -- END TASK
+                                                  -- END TASK
+                                                -- END TASK
+                                              -- END TASK
+                                            -- END TASK
+                                          -- END TASK
+                                        -- END TASK
+                                      -- END TASK
+                                    -- END TASK
+                                  -- END TASK
+
+                                -- END TASK
+
+
+                      -- END TASK
+                    -- END TASK
+                  -- END TASK
+                  -- END TASK
+
+
+
+                -- END TASK
+
+              -- END TASK
+
+
+
+          -- END TASK
+
+          -- END TASK
+
+
+        -- END TASK
+      -- END TASK
+    -- END TASK
+  · -- BEGIN TASK
+    suffices h: __discr.1.val < 2 ^128 - 5 * 2 ^ 124
+    · expand a_bounds with 9; scalar_tac
+    · rw[__discr_post_2]
+      apply Nat.div_lt_of_lt_mul
+      suffices h: i39.val + i40.val < 2 ^ 128
+      · scalar_tac
+      · -- BEGIN TASK
+
+        rw[i39_post]
+        have : i40.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+          simp[i40_post, i8_post]
+          have : 0< ((constants.L)[2]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          simp_all
+          apply Nat.mod_lt
+          simp
+        suffices h: i37.val + i38.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+          clear this __discr_post_1 __discr_post_2
+          rename' __discr => __discr40
+          rw[i37_post]
+          have : i38.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+            simp[i38_post, i21_post]
+            have : 0< ((constants.L)[4]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            simp_all
+            apply Nat.mod_lt
+            simp
+
+          suffices h: __discr.1.val + i36.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+          · scalar_tac
+          · -- BEGIN TASK
+            suffices h: __discr.1.val < 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+            · -- BEGIN TASK
+              rw[i36_post]
+              expand a_bounds with 9
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+              rw[__discr_post_2]
+              apply Nat.div_lt_of_lt_mul
+              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                simp
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i35.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                      2 ^ 52 *  ((constants.L)[0]!).val - 2
+              · -- BEGIN TASK
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                suffices h: i33.val + i34.val < 2 ^ 128
+                · rw[i35_post];scalar_tac
+                · -- BEGIN TASK
+                  rw[i33_post]
+                  have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                    simp[i34_post, i3_post]
+                    have : 0< ((constants.L)[1]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    simp_all
+                    apply Nat.mod_lt
+                    simp
+                  suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+                  · scalar_tac
+                  · -- BEGIN TASK
+                    clear this __discr_post_1 __discr_post_2
+                    rename' __discr => x
+                    rw[i31_post]
+                    have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                      simp[i32_post, i8_post]
+                      have : 0< ((constants.L)[2]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      simp_all
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+                    · scalar_tac
+                    · -- BEGIN TASK
+                      rw[i29_post]
+                      have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                        simp[i30_post, i21_post]
+                        have : 0< ((constants.L)[4]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        simp_all
+                        apply Nat.mod_lt
+                        simp
+
+                      suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                      · scalar_tac
+                      · -- BEGIN TASK
+                        suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                        · expand a_bounds with 9
+                          scalar_tac
+                        · -- BEGIN TASK
+                          rw[__discr_post_2, __discr_post_1]
+                          apply Nat.div_le_of_le_mul
+                          have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                            simp
+                            have : 0< ((constants.L)[0]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            rw[__discr_post_1]
+                            apply Nat.mod_lt
+                            simp
+                          suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                              2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+                          · -- BEGIN TASK
+                            scalar_tac
+                            -- END TASK
+                          · -- BEGIN TASK
+                                      rw[i18_post,i16_post]
+                                      clear this i19_post __discr_post_2 __discr_post_1
+                                      rename' __discr => discr0
+                                      rename' __discr => discr1
+                                      rename' __discr => discr2
+                                      rename' __discr_post_2 => __discr1_post_2
+                                      rename' __discr_post_2 => __discr2_post_2
+                                      rename' __discr_post_1 => __discr1_post_1
+                                      rename' __discr_post_1 => __discr2_post_1
+                                      have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                        simp[i17_post, i3_post]
+                                        have : 0< ((constants.L)[1]!).val := by
+                                          unfold constants.L
+                                          decide
+                                        simp at this
+                                        apply (Nat.mul_lt_mul_right this).mpr
+                                        rw[__discr2_post_1]
+                                        apply Nat.mod_lt
+                                        simp
+                                      suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                        2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                                        2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                                      · scalar_tac
+                                      · -- BEGIN TASK
+                                        rw[i14_post, i13_post, i15_post]
+                                        have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                                          simp[i15_post, i8_post]
+                                          have : 0< ((constants.L)[2]!).val := by
+                                            unfold constants.L
+                                            decide
+                                          simp at this
+                                          apply (Nat.mul_lt_mul_right this).mpr
+                                          rename' __discr_post_1 => __discr_post_3
+                                          rw[__discr_post_3]
+                                          apply Nat.mod_lt
+                                          simp
+                                        have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                                        suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                                        · -- BEGIN TASK
+                                          scalar_tac
+                                          -- END TASK
+                                        · -- BEGIN TASK
+                                                rename' __discr_post_2 => h_discr_post_2
+                                                rename' __discr_post_2 => h_discr_post_3
+                                                rw[h_discr_post_2]
+                                                apply Nat.div_le_of_le_mul
+                                                have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                  simp
+                                                  have : 0< ((constants.L)[0]!).val := by
+                                                    unfold constants.L
+                                                    decide
+                                                  simp at this
+                                                  apply (Nat.mul_lt_mul_right this).mpr
+                                                  rw[__discr_post_1]
+                                                  apply Nat.mod_lt
+                                                  simp
+                                                suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                2 ^ 52 *  ((constants.L)[0]!).val
+                                                · -- BEGIN TASK
+                                                  scalar_tac
+                                                  -- END TASK
+                                                · -- BEGIN TASK
+                                                  rw[i5_post]
+                                                  have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                                    simp[i4_post, i3_post]
+                                                    have : 0< ((constants.L)[1]!).val := by
+                                                      unfold constants.L
+                                                      decide
+                                                    simp at this
+                                                    apply (Nat.mul_lt_mul_right this).mpr
+                                                    rename' __discr_post_1=>  __discr1
+                                                    rename' __discr_post_1=>  __discr2
+                                                    rw[__discr2]
+                                                    apply Nat.mod_lt
+                                                    simp
+                                                  suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                    2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                                  · -- BEGIN TASK
+                                                    scalar_tac
+                                                    -- END TASK
+                                                  · -- BEGIN TASK
+                                                    rw[i2_post]
+                                                    rename' __discr=>  discr1
+                                                    suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                    2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                                    · -- BEGIN TASK
+                                                      have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                                      simp at this
+                                                      simp[i1_post]
+                                                      apply le_trans this
+                                                      scalar_tac
+                                                      -- END TASK
+                                                    · -- BEGIN TASK
+                                                      rename' __discr_post_1=>  __discr1
+                                                      rename' __discr_post_1=>  __discr4
+
+                                                      rw[h_discr_post_3]
+                                                      apply Nat.div_le_of_le_mul
+                                                      have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                        simp
+                                                        have : 0< ((constants.L)[0]!).val := by
+                                                          unfold constants.L
+                                                          decide
+                                                        simp at this
+                                                        apply (Nat.mul_lt_mul_right this).mpr
+                                                        rw[__discr4]
+                                                        apply Nat.mod_lt
+                                                        simp
+                                                      suffices h: i.val ≤  2 ^ 52 *
+                                                        (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                                        5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                                      · -- BEGIN TASK
+                                                        scalar_tac
+                                                        -- END TASK
+                                                      · -- BEGIN TASK
+                                                        rw[i_post]
+                                                        scalar_tac
+                                                        -- END TASK
+                                                      -- END TASK
+                                                    -- END TASK
+                                                  -- END TASK
+                                                -- END TASK
+                                              -- END TASK
+                                            -- END TASK
+                                          -- END TASK
+                                        -- END TASK
+                                      -- END TASK
+
+                                    -- END TASK
+
+
+                          -- END TASK
+                        -- END TASK
+                      -- END TASK
+                      -- END TASK
+
+
+
+                    -- END TASK
+
+                  -- END TASK
+
+
+
+              -- END TASK
+
+              -- END TASK
+
+
+            -- END TASK
+          -- END TASK
+        -- END TASK
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i43_post]
+    have : i44.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+      simp[i44_post, i21_post]
+      have : 0< ((constants.L)[4]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+
+    suffices h: __discr.1.val + i42.val ≤ 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+      · -- BEGIN TASK
+        rw[i42_post]
+        expand a_bounds with 9
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+        rw[__discr_post_2]
+        apply Nat.div_lt_of_lt_mul
+        have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+          simp
+          have : 0< ((constants.L)[0]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i41.val ≤  2^128-1
+        · scalar_tac
+        · -- BEGIN TASK
+          clear this __discr_post_1 __discr_post_2
+          rename' __discr => q40
+          rw[i41_post, i39_post]
+          have : i40.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+            simp[i40_post, i8_post]
+            have : 0< ((constants.L)[2]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            simp_all
+            apply Nat.mod_lt
+            simp
+          suffices h: i37.val + i38.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val
+          · scalar_tac
+          · -- BEGIN TASK
+            rw[i37_post]
+            have : i38.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+              simp[i38_post, i21_post]
+              have : 0< ((constants.L)[4]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              simp_all
+              apply Nat.mod_lt
+              simp
+
+            suffices h: __discr.1.val + i36.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+            · scalar_tac
+            · -- BEGIN TASK
+              suffices h: __discr.1.val < 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+              · -- BEGIN TASK
+                rw[i36_post]
+                expand a_bounds with 9
+                scalar_tac
+                -- END TASK
+              · -- BEGIN TASK
+                rw[__discr_post_2]
+                apply Nat.div_lt_of_lt_mul
+                have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                  simp
+                  have : 0< ((constants.L)[0]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  rw[__discr_post_1]
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i35.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                        2 ^ 52 *  ((constants.L)[0]!).val - 2
+                · -- BEGIN TASK
+                  scalar_tac
+                  -- END TASK
+                · -- BEGIN TASK
+                  suffices h: i33.val + i34.val < 2 ^ 128
+                  · rw[i35_post];scalar_tac
+                  · -- BEGIN TASK
+                    rw[i33_post]
+                    have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                      simp[i34_post, i3_post]
+                      have : 0< ((constants.L)[1]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      simp_all
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+                    · scalar_tac
+                    · -- BEGIN TASK
+                      clear this __discr_post_1 __discr_post_2
+                      rename' __discr => x
+                      rw[i31_post]
+                      have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                        simp[i32_post, i8_post]
+                        have : 0< ((constants.L)[2]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        simp_all
+                        apply Nat.mod_lt
+                        simp
+                      suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+                      · scalar_tac
+                      · -- BEGIN TASK
+                        rw[i29_post]
+                        have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                          simp[i30_post, i21_post]
+                          have : 0< ((constants.L)[4]!).val := by
+                            unfold constants.L
+                            decide
+                          simp at this
+                          apply (Nat.mul_lt_mul_right this).mpr
+                          simp_all
+                          apply Nat.mod_lt
+                          simp
+
+                        suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                        · scalar_tac
+                        · -- BEGIN TASK
+                          suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                          · expand a_bounds with 9
+                            scalar_tac
+                          · -- BEGIN TASK
+                            rw[__discr_post_2, __discr_post_1]
+                            apply Nat.div_le_of_le_mul
+                            have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                              simp
+                              have : 0< ((constants.L)[0]!).val := by
+                                unfold constants.L
+                                decide
+                              simp at this
+                              apply (Nat.mul_lt_mul_right this).mpr
+                              rw[__discr_post_1]
+                              apply Nat.mod_lt
+                              simp
+                            suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+                            · -- BEGIN TASK
+                              scalar_tac
+                              -- END TASK
+                            · -- BEGIN TASK
+                                        rw[i18_post,i16_post]
+                                        clear this i19_post __discr_post_2 __discr_post_1
+                                        rename' __discr => discr0
+                                        rename' __discr => discr1
+                                        rename' __discr => discr2
+                                        rename' __discr_post_2 => __discr1_post_2
+                                        rename' __discr_post_2 => __discr2_post_2
+                                        rename' __discr_post_1 => __discr1_post_1
+                                        rename' __discr_post_1 => __discr2_post_1
+                                        have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                          simp[i17_post, i3_post]
+                                          have : 0< ((constants.L)[1]!).val := by
+                                            unfold constants.L
+                                            decide
+                                          simp at this
+                                          apply (Nat.mul_lt_mul_right this).mpr
+                                          rw[__discr2_post_1]
+                                          apply Nat.mod_lt
+                                          simp
+                                        suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                          2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                                          2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                                        · scalar_tac
+                                        · -- BEGIN TASK
+                                          rw[i14_post, i13_post, i15_post]
+                                          have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                                            simp[i15_post, i8_post]
+                                            have : 0< ((constants.L)[2]!).val := by
+                                              unfold constants.L
+                                              decide
+                                            simp at this
+                                            apply (Nat.mul_lt_mul_right this).mpr
+                                            rename' __discr_post_1 => __discr_post_3
+                                            rw[__discr_post_3]
+                                            apply Nat.mod_lt
+                                            simp
+                                          have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                                          suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                                          · -- BEGIN TASK
+                                            scalar_tac
+                                            -- END TASK
+                                          · -- BEGIN TASK
+                                                  rename' __discr_post_2 => h_discr_post_2
+                                                  rename' __discr_post_2 => h_discr_post_3
+                                                  rw[h_discr_post_2]
+                                                  apply Nat.div_le_of_le_mul
+                                                  have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                    simp
+                                                    have : 0< ((constants.L)[0]!).val := by
+                                                      unfold constants.L
+                                                      decide
+                                                    simp at this
+                                                    apply (Nat.mul_lt_mul_right this).mpr
+                                                    rw[__discr_post_1]
+                                                    apply Nat.mod_lt
+                                                    simp
+                                                  suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                  2 ^ 52 *  ((constants.L)[0]!).val
+                                                  · -- BEGIN TASK
+                                                    scalar_tac
+                                                    -- END TASK
+                                                  · -- BEGIN TASK
+                                                    rw[i5_post]
+                                                    have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                                      simp[i4_post, i3_post]
+                                                      have : 0< ((constants.L)[1]!).val := by
+                                                        unfold constants.L
+                                                        decide
+                                                      simp at this
+                                                      apply (Nat.mul_lt_mul_right this).mpr
+                                                      rename' __discr_post_1=>  __discr1
+                                                      rename' __discr_post_1=>  __discr2
+                                                      rw[__discr2]
+                                                      apply Nat.mod_lt
+                                                      simp
+                                                    suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                      2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                                    · -- BEGIN TASK
+                                                      scalar_tac
+                                                      -- END TASK
+                                                    · -- BEGIN TASK
+                                                      rw[i2_post]
+                                                      rename' __discr=>  discr1
+                                                      suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                      2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                                      · -- BEGIN TASK
+                                                        have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                                        simp at this
+                                                        simp[i1_post]
+                                                        apply le_trans this
+                                                        scalar_tac
+                                                        -- END TASK
+                                                      · -- BEGIN TASK
+                                                        rename' __discr_post_1=>  __discr1
+                                                        rename' __discr_post_1=>  __discr4
+
+                                                        rw[h_discr_post_3]
+                                                        apply Nat.div_le_of_le_mul
+                                                        have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                          simp
+                                                          have : 0< ((constants.L)[0]!).val := by
+                                                            unfold constants.L
+                                                            decide
+                                                          simp at this
+                                                          apply (Nat.mul_lt_mul_right this).mpr
+                                                          rw[__discr4]
+                                                          apply Nat.mod_lt
+                                                          simp
+                                                        suffices h: i.val ≤  2 ^ 52 *
+                                                          (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                                          5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                                        · -- BEGIN TASK
+                                                          scalar_tac
+                                                          -- END TASK
+                                                        · -- BEGIN TASK
+                                                          rw[i_post]
+                                                          scalar_tac
+                                                          -- END TASK
+                                                        -- END TASK
+                                                      -- END TASK
+                                                    -- END TASK
+                                                  -- END TASK
+                                                -- END TASK
+                                              -- END TASK
+                                            -- END TASK
+                                          -- END TASK
+                                        -- END TASK
+
+                                      -- END TASK
+
+
+                            -- END TASK
+                          -- END TASK
+                        -- END TASK
+                        -- END TASK
+
+
+
+                      -- END TASK
+
+                    -- END TASK
+
+
+
+                -- END TASK
+
+                -- END TASK
+
+
+              -- END TASK
+            -- END TASK
+          -- END TASK
+
+
+
+    -- END TASK
+  · -- BEGIN TASK
+    suffices h: __discr.1.val < 2 ^128 - 5 * 2 ^ 124
+    · expand a_bounds with 9; scalar_tac
+    · rw[__discr_post_2]
+      apply Nat.div_lt_of_lt_mul
+      suffices h: i43.val + i44.val < 2 ^ 128
+      · scalar_tac
+      · -- BEGIN TASK
+        clear  __discr_post_1 __discr_post_2
+        rename' __discr => q44
+
+        rw[i43_post]
+        have : i44.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+          simp[i44_post, i21_post]
+          have : 0< ((constants.L)[4]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          simp_all
+          apply Nat.mod_lt
+          simp
+
+        suffices h: __discr.1.val + i42.val ≤ 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val
+        · scalar_tac
+        · -- BEGIN TASK
+          suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+          · -- BEGIN TASK
+            rw[i42_post]
+            expand a_bounds with 9
+            scalar_tac
+            -- END TASK
+          · -- BEGIN TASK
+            rw[__discr_post_2]
+            apply Nat.div_lt_of_lt_mul
+            have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+              simp
+              have : 0< ((constants.L)[0]!).val := by
+                unfold constants.L
+                decide
+              simp at this
+              apply (Nat.mul_lt_mul_right this).mpr
+              rw[__discr_post_1]
+              apply Nat.mod_lt
+              simp
+            suffices h: i41.val ≤  2^128-1
+            · scalar_tac
+            · -- BEGIN TASK
+              clear this __discr_post_1 __discr_post_2
+              rename' __discr => q40
+              rw[i41_post, i39_post]
+              have : i40.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                simp[i40_post, i8_post]
+                have : 0< ((constants.L)[2]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                simp_all
+                apply Nat.mod_lt
+                simp
+              suffices h: i37.val + i38.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val
+              · scalar_tac
+              · -- BEGIN TASK
+                rw[i37_post]
+                have : i38.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                  simp[i38_post, i21_post]
+                  have : 0< ((constants.L)[4]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  simp_all
+                  apply Nat.mod_lt
+                  simp
+
+                suffices h: __discr.1.val + i36.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                · scalar_tac
+                · -- BEGIN TASK
+                  suffices h: __discr.1.val < 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                  · -- BEGIN TASK
+                    rw[i36_post]
+                    expand a_bounds with 9
+                    scalar_tac
+                    -- END TASK
+                  · -- BEGIN TASK
+                    rw[__discr_post_2]
+                    apply Nat.div_lt_of_lt_mul
+                    have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                      simp
+                      have : 0< ((constants.L)[0]!).val := by
+                        unfold constants.L
+                        decide
+                      simp at this
+                      apply (Nat.mul_lt_mul_right this).mpr
+                      rw[__discr_post_1]
+                      apply Nat.mod_lt
+                      simp
+                    suffices h: i35.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                            2 ^ 52 *  ((constants.L)[0]!).val - 2
+                    · -- BEGIN TASK
+                      scalar_tac
+                      -- END TASK
+                    · -- BEGIN TASK
+                      suffices h: i33.val + i34.val < 2 ^ 128
+                      · rw[i35_post];scalar_tac
+                      · -- BEGIN TASK
+                        rw[i33_post]
+                        have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                          simp[i34_post, i3_post]
+                          have : 0< ((constants.L)[1]!).val := by
+                            unfold constants.L
+                            decide
+                          simp at this
+                          apply (Nat.mul_lt_mul_right this).mpr
+                          simp_all
+                          apply Nat.mod_lt
+                          simp
+                        suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+                        · scalar_tac
+                        · -- BEGIN TASK
+                          clear this __discr_post_1 __discr_post_2
+                          rename' __discr => x
+                          rw[i31_post]
+                          have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                            simp[i32_post, i8_post]
+                            have : 0< ((constants.L)[2]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            simp_all
+                            apply Nat.mod_lt
+                            simp
+                          suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+                          · scalar_tac
+                          · -- BEGIN TASK
+                            rw[i29_post]
+                            have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                              simp[i30_post, i21_post]
+                              have : 0< ((constants.L)[4]!).val := by
+                                unfold constants.L
+                                decide
+                              simp at this
+                              apply (Nat.mul_lt_mul_right this).mpr
+                              simp_all
+                              apply Nat.mod_lt
+                              simp
+
+                            suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                            · scalar_tac
+                            · -- BEGIN TASK
+                              suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                              · expand a_bounds with 9
+                                scalar_tac
+                              · -- BEGIN TASK
+                                rw[__discr_post_2, __discr_post_1]
+                                apply Nat.div_le_of_le_mul
+                                have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                  simp
+                                  have : 0< ((constants.L)[0]!).val := by
+                                    unfold constants.L
+                                    decide
+                                  simp at this
+                                  apply (Nat.mul_lt_mul_right this).mpr
+                                  rw[__discr_post_1]
+                                  apply Nat.mod_lt
+                                  simp
+                                suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                    2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+                                · -- BEGIN TASK
+                                  scalar_tac
+                                  -- END TASK
+                                · -- BEGIN TASK
+                                            rw[i18_post,i16_post]
+                                            clear this i19_post __discr_post_2 __discr_post_1
+                                            rename' __discr => discr0
+                                            rename' __discr => discr1
+                                            rename' __discr => discr2
+                                            rename' __discr_post_2 => __discr1_post_2
+                                            rename' __discr_post_2 => __discr2_post_2
+                                            rename' __discr_post_1 => __discr1_post_1
+                                            rename' __discr_post_1 => __discr2_post_1
+                                            have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                              simp[i17_post, i3_post]
+                                              have : 0< ((constants.L)[1]!).val := by
+                                                unfold constants.L
+                                                decide
+                                              simp at this
+                                              apply (Nat.mul_lt_mul_right this).mpr
+                                              rw[__discr2_post_1]
+                                              apply Nat.mod_lt
+                                              simp
+                                            suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                              2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                                              2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                                            · scalar_tac
+                                            · -- BEGIN TASK
+                                              rw[i14_post, i13_post, i15_post]
+                                              have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                                                simp[i15_post, i8_post]
+                                                have : 0< ((constants.L)[2]!).val := by
+                                                  unfold constants.L
+                                                  decide
+                                                simp at this
+                                                apply (Nat.mul_lt_mul_right this).mpr
+                                                rename' __discr_post_1 => __discr_post_3
+                                                rw[__discr_post_3]
+                                                apply Nat.mod_lt
+                                                simp
+                                              have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                                              suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                                              · -- BEGIN TASK
+                                                scalar_tac
+                                                -- END TASK
+                                              · -- BEGIN TASK
+                                                      rename' __discr_post_2 => h_discr_post_2
+                                                      rename' __discr_post_2 => h_discr_post_3
+                                                      rw[h_discr_post_2]
+                                                      apply Nat.div_le_of_le_mul
+                                                      have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                        simp
+                                                        have : 0< ((constants.L)[0]!).val := by
+                                                          unfold constants.L
+                                                          decide
+                                                        simp at this
+                                                        apply (Nat.mul_lt_mul_right this).mpr
+                                                        rw[__discr_post_1]
+                                                        apply Nat.mod_lt
+                                                        simp
+                                                      suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                      2 ^ 52 *  ((constants.L)[0]!).val
+                                                      · -- BEGIN TASK
+                                                        scalar_tac
+                                                        -- END TASK
+                                                      · -- BEGIN TASK
+                                                        rw[i5_post]
+                                                        have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                                          simp[i4_post, i3_post]
+                                                          have : 0< ((constants.L)[1]!).val := by
+                                                            unfold constants.L
+                                                            decide
+                                                          simp at this
+                                                          apply (Nat.mul_lt_mul_right this).mpr
+                                                          rename' __discr_post_1=>  __discr1
+                                                          rename' __discr_post_1=>  __discr2
+                                                          rw[__discr2]
+                                                          apply Nat.mod_lt
+                                                          simp
+                                                        suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                          2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                                        · -- BEGIN TASK
+                                                          scalar_tac
+                                                          -- END TASK
+                                                        · -- BEGIN TASK
+                                                          rw[i2_post]
+                                                          rename' __discr=>  discr1
+                                                          suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                          2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                                          · -- BEGIN TASK
+                                                            have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                                            simp at this
+                                                            simp[i1_post]
+                                                            apply le_trans this
+                                                            scalar_tac
+                                                            -- END TASK
+                                                          · -- BEGIN TASK
+                                                            rename' __discr_post_1=>  __discr1
+                                                            rename' __discr_post_1=>  __discr4
+
+                                                            rw[h_discr_post_3]
+                                                            apply Nat.div_le_of_le_mul
+                                                            have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                              simp
+                                                              have : 0< ((constants.L)[0]!).val := by
+                                                                unfold constants.L
+                                                                decide
+                                                              simp at this
+                                                              apply (Nat.mul_lt_mul_right this).mpr
+                                                              rw[__discr4]
+                                                              apply Nat.mod_lt
+                                                              simp
+                                                            suffices h: i.val ≤  2 ^ 52 *
+                                                              (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                                              5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                                            · -- BEGIN TASK
+                                                              scalar_tac
+                                                              -- END TASK
+                                                            · -- BEGIN TASK
+                                                              rw[i_post]
+                                                              scalar_tac
+                                                              -- END TASK
+                                                            -- END TASK
+                                                          -- END TASK
+                                                        -- END TASK
+                                                      -- END TASK
+                                                    -- END TASK
+                                                  -- END TASK
+                                                -- END TASK
+                                              -- END TASK
+                                            -- END TASK
+
+                                          -- END TASK
+
+
+                                -- END TASK
+                              -- END TASK
+                            -- END TASK
+                            -- END TASK
+
+
+
+                          -- END TASK
+
+                        -- END TASK
+
+
+
+                    -- END TASK
+
+                    -- END TASK
+
+
+                  -- END TASK
+                -- END TASK
+              -- END TASK
+
+
+
+        -- END TASK
+
+
+
+    -- END TASK
+  · -- BEGIN TASK
+    rw[i47_post]
+    have : i48.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+      simp[i48_post, i21_post]
+      have : 0< ((constants.L)[4]!).val := by
+        unfold constants.L
+        decide
+      simp at this
+      apply (Nat.mul_lt_mul_right this).mpr
+      simp_all
+      apply Nat.mod_lt
+      simp
+
+    suffices h: __discr.1.val + i46.val ≤ 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val
+    · scalar_tac
+    · -- BEGIN TASK
+      suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+      · -- BEGIN TASK
+        rw[i46_post]
+        expand a_bounds with 9
+        scalar_tac
+        -- END TASK
+      · -- BEGIN TASK
+        rw[__discr_post_2]
+        apply Nat.div_lt_of_lt_mul
+        have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+          simp
+          have : 0< ((constants.L)[0]!).val := by
+            unfold constants.L
+            decide
+          simp at this
+          apply (Nat.mul_lt_mul_right this).mpr
+          rw[__discr_post_1]
+          apply Nat.mod_lt
+          simp
+        suffices h: i45.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                2 ^ 52 *  ((constants.L)[0]!).val - 2
+        · scalar_tac
+
+        · -- BEGIN TASK
+          clear  __discr_post_1 __discr_post_2
+          rename' __discr => q44
+
+          rw[i45_post, i43_post]
+          have : i44.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+            simp[i44_post, i21_post]
+            have : 0< ((constants.L)[4]!).val := by
+              unfold constants.L
+              decide
+            simp at this
+            apply (Nat.mul_lt_mul_right this).mpr
+            simp_all
+            apply Nat.mod_lt
+            simp
+
+          suffices h: __discr.1.val + i42.val ≤ 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val
+          · scalar_tac
+          · -- BEGIN TASK
+            suffices h: __discr.1.val < 2 ^ 128 - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+            · -- BEGIN TASK
+              rw[i42_post]
+              expand a_bounds with 9
+              scalar_tac
+              -- END TASK
+            · -- BEGIN TASK
+              rw[__discr_post_2]
+              apply Nat.div_lt_of_lt_mul
+              have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                simp
+                have : 0< ((constants.L)[0]!).val := by
+                  unfold constants.L
+                  decide
+                simp at this
+                apply (Nat.mul_lt_mul_right this).mpr
+                rw[__discr_post_1]
+                apply Nat.mod_lt
+                simp
+              suffices h: i41.val ≤  2^128-1
+              · scalar_tac
+              · -- BEGIN TASK
+                clear this __discr_post_1 __discr_post_2
+                rename' __discr => q40
+                rw[i41_post, i39_post]
+                have : i40.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                  simp[i40_post, i8_post]
+                  have : 0< ((constants.L)[2]!).val := by
+                    unfold constants.L
+                    decide
+                  simp at this
+                  apply (Nat.mul_lt_mul_right this).mpr
+                  simp_all
+                  apply Nat.mod_lt
+                  simp
+                suffices h: i37.val + i38.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val
+                · scalar_tac
+                · -- BEGIN TASK
+                  rw[i37_post]
+                  have : i38.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                    simp[i38_post, i21_post]
+                    have : 0< ((constants.L)[4]!).val := by
+                      unfold constants.L
+                      decide
+                    simp at this
+                    apply (Nat.mul_lt_mul_right this).mpr
+                    simp_all
+                    apply Nat.mod_lt
+                    simp
+
+                  suffices h: __discr.1.val + i36.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                  · scalar_tac
+                  · -- BEGIN TASK
+                    suffices h: __discr.1.val < 2^ 128 - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                    · -- BEGIN TASK
+                      rw[i36_post]
+                      expand a_bounds with 9
+                      scalar_tac
+                      -- END TASK
+                    · -- BEGIN TASK
+                      rw[__discr_post_2]
+                      apply Nat.div_lt_of_lt_mul
+                      have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                        simp
+                        have : 0< ((constants.L)[0]!).val := by
+                          unfold constants.L
+                          decide
+                        simp at this
+                        apply (Nat.mul_lt_mul_right this).mpr
+                        rw[__discr_post_1]
+                        apply Nat.mod_lt
+                        simp
+                      suffices h: i35.val ≤  2 ^ 52 * (2 ^ 128 - 5 * 2 ^ 124) -
+                              2 ^ 52 *  ((constants.L)[0]!).val - 2
+                      · -- BEGIN TASK
+                        scalar_tac
+                        -- END TASK
+                      · -- BEGIN TASK
+                        suffices h: i33.val + i34.val < 2 ^ 128
+                        · rw[i35_post];scalar_tac
+                        · -- BEGIN TASK
+                          rw[i33_post]
+                          have : i34.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                            simp[i34_post, i3_post]
+                            have : 0< ((constants.L)[1]!).val := by
+                              unfold constants.L
+                              decide
+                            simp at this
+                            apply (Nat.mul_lt_mul_right this).mpr
+                            simp_all
+                            apply Nat.mod_lt
+                            simp
+                          suffices h: i31.val + i32.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val
+                          · scalar_tac
+                          · -- BEGIN TASK
+                            clear this __discr_post_1 __discr_post_2
+                            rename' __discr => x
+                            rw[i31_post]
+                            have : i32.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                              simp[i32_post, i8_post]
+                              have : 0< ((constants.L)[2]!).val := by
+                                unfold constants.L
+                                decide
+                              simp at this
+                              apply (Nat.mul_lt_mul_right this).mpr
+                              simp_all
+                              apply Nat.mod_lt
+                              simp
+                            suffices h: i29.val + i30.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val
+                            · scalar_tac
+                            · -- BEGIN TASK
+                              rw[i29_post]
+                              have : i30.val < 2 ^ 52 *  ((constants.L)[4]!).val := by
+                                simp[i30_post, i21_post]
+                                have : 0< ((constants.L)[4]!).val := by
+                                  unfold constants.L
+                                  decide
+                                simp at this
+                                apply (Nat.mul_lt_mul_right this).mpr
+                                simp_all
+                                apply Nat.mod_lt
+                                simp
+
+                              suffices h: ↑__discr.1 + i28.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val
+                              · scalar_tac
+                              · -- BEGIN TASK
+                                suffices h: ↑__discr.1  ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val - 2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124
+                                · expand a_bounds with 9
+                                  scalar_tac
+                                · -- BEGIN TASK
+                                  rw[__discr_post_2, __discr_post_1]
+                                  apply Nat.div_le_of_le_mul
+                                  have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                    simp
+                                    have : 0< ((constants.L)[0]!).val := by
+                                      unfold constants.L
+                                      decide
+                                    simp at this
+                                    apply (Nat.mul_lt_mul_right this).mpr
+                                    rw[__discr_post_1]
+                                    apply Nat.mod_lt
+                                    simp
+                                  suffices h: i18.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                      2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 - 2 ^ 52 *  ((constants.L)[0]!).val
+                                  · -- BEGIN TASK
+                                    scalar_tac
+                                    -- END TASK
+                                  · -- BEGIN TASK
+                                              rw[i18_post,i16_post]
+                                              clear this i19_post __discr_post_2 __discr_post_1
+                                              rename' __discr => discr0
+                                              rename' __discr => discr1
+                                              rename' __discr => discr2
+                                              rename' __discr_post_2 => __discr1_post_2
+                                              rename' __discr_post_2 => __discr2_post_2
+                                              rename' __discr_post_1 => __discr1_post_1
+                                              rename' __discr_post_1 => __discr2_post_1
+                                              have : i17.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                                simp[i17_post, i3_post]
+                                                have : 0< ((constants.L)[1]!).val := by
+                                                  unfold constants.L
+                                                  decide
+                                                simp at this
+                                                apply (Nat.mul_lt_mul_right this).mpr
+                                                rw[__discr2_post_1]
+                                                apply Nat.mod_lt
+                                                simp
+                                              suffices h: i14.val + i15.val ≤ 2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[2]!).val -
+                                                2 ^ 52 *  ((constants.L)[4]!).val - 5 * 2 ^ 124 -
+                                                2 ^ 52 *  ((constants.L)[0]!).val - 2 ^ 52 *  ((constants.L)[1]!).val
+                                              · scalar_tac
+                                              · -- BEGIN TASK
+                                                rw[i14_post, i13_post, i15_post]
+                                                have : i15.val < 2 ^ 52 *  ((constants.L)[2]!).val := by
+                                                  simp[i15_post, i8_post]
+                                                  have : 0< ((constants.L)[2]!).val := by
+                                                    unfold constants.L
+                                                    decide
+                                                  simp at this
+                                                  apply (Nat.mul_lt_mul_right this).mpr
+                                                  rename' __discr_post_1 => __discr_post_3
+                                                  rw[__discr_post_3]
+                                                  apply Nat.mod_lt
+                                                  simp
+                                                have := Nat.add_lt_add (a_bounds 3 (by simp)) this
+                                                suffices h:  __discr.1.val ≤  2^ 128 - 2 ^ 52 *  ((constants.L)[1]!).val - 2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124 - 2 ^ 52 * (constants.L[2]!).val
+                                                · -- BEGIN TASK
+                                                  scalar_tac
+                                                  -- END TASK
+                                                · -- BEGIN TASK
+                                                        rename' __discr_post_2 => h_discr_post_2
+                                                        rename' __discr_post_2 => h_discr_post_3
+                                                        rw[h_discr_post_2]
+                                                        apply Nat.div_le_of_le_mul
+                                                        have : __discr.2.val * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                          simp
+                                                          have : 0< ((constants.L)[0]!).val := by
+                                                            unfold constants.L
+                                                            decide
+                                                          simp at this
+                                                          apply (Nat.mul_lt_mul_right this).mpr
+                                                          rw[__discr_post_1]
+                                                          apply Nat.mod_lt
+                                                          simp
+                                                        suffices h: i5.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                        2 ^ 52 *  ((constants.L)[0]!).val
+                                                        · -- BEGIN TASK
+                                                          scalar_tac
+                                                          -- END TASK
+                                                        · -- BEGIN TASK
+                                                          rw[i5_post]
+                                                          have : i4.val < 2 ^ 52 *  ((constants.L)[1]!).val := by
+                                                            simp[i4_post, i3_post]
+                                                            have : 0< ((constants.L)[1]!).val := by
+                                                              unfold constants.L
+                                                              decide
+                                                            simp at this
+                                                            apply (Nat.mul_lt_mul_right this).mpr
+                                                            rename' __discr_post_1=>  __discr1
+                                                            rename' __discr_post_1=>  __discr2
+                                                            rw[__discr2]
+                                                            apply Nat.mod_lt
+                                                            simp
+                                                          suffices h: i2.val ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                            2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val
+                                                          · -- BEGIN TASK
+                                                            scalar_tac
+                                                            -- END TASK
+                                                          · -- BEGIN TASK
+                                                            rw[i2_post]
+                                                            rename' __discr=>  discr1
+                                                            suffices h: ↑__discr.1 ≤  2 ^128-1 - 5 * 2 ^ 124 - 2^ 52 * ((constants.L)[2]!).val -
+                                                            2 ^ 52 *  ((constants.L)[0]!).val  -2 ^ 52 *  ((constants.L)[1]!).val - 5 * 2 ^ 124
+                                                            · -- BEGIN TASK
+                                                              have := Nat.add_le_add h (le_of_lt (a_bounds 1 (by simp: 1<9)))
+                                                              simp at this
+                                                              simp[i1_post]
+                                                              apply le_trans this
+                                                              scalar_tac
+                                                              -- END TASK
+                                                            · -- BEGIN TASK
+                                                              rename' __discr_post_1=>  __discr1
+                                                              rename' __discr_post_1=>  __discr4
+
+                                                              rw[h_discr_post_3]
+                                                              apply Nat.div_le_of_le_mul
+                                                              have : ↑__discr.2 * ↑constants.L[0]! < 2 ^ 52 *  ((constants.L)[0]!).val := by
+                                                                simp
+                                                                have : 0< ((constants.L)[0]!).val := by
+                                                                  unfold constants.L
+                                                                  decide
+                                                                simp at this
+                                                                apply (Nat.mul_lt_mul_right this).mpr
+                                                                rw[__discr4]
+                                                                apply Nat.mod_lt
+                                                                simp
+                                                              suffices h: i.val ≤  2 ^ 52 *
+                                                                (2 ^ 128 - 1 - 5 * 2 ^ 124 - 2 ^ 52 * ↑constants.L[2]! - 2 ^ 52 * ↑constants.L[0]! - 2 ^ 52 * ↑constants.L[1]! -
+                                                                5 * 2 ^ 124) - 2 ^ 52 *  ((constants.L)[0]!).val
+                                                              · -- BEGIN TASK
+                                                                scalar_tac
+                                                                -- END TASK
+                                                              · -- BEGIN TASK
+                                                                rw[i_post]
+                                                                scalar_tac
+                                                                -- END TASK
+                                                              -- END TASK
+                                                            -- END TASK
+                                                          -- END TASK
+                                                        -- END TASK
+                                                      -- END TASK
+                                                    -- END TASK
+                                                  -- END TASK
+                                                -- END TASK
+                                              -- END TASK
+
+                                            -- END TASK
+
+
+                                  -- END TASK
+                                -- END TASK
+                              -- END TASK
+                              -- END TASK
+
+
+
+                            -- END TASK
+
+                          -- END TASK
+
+
+
+                      -- END TASK
+
+                      -- END TASK
+
+
+                    -- END TASK
+                  -- END TASK
+                -- END TASK
+
+
+
+          -- END TASK
+
+
+
+    -- END TASK
+  · intro i hi
+    interval_cases i
+    any_goals (simp_all [Array.make]; apply Nat.mod_lt; simp)
+    simp[Array.make]
+    rw[r4_post, UScalar.cast_val_eq, UScalarTy.numBits, __discr_post_2]
+    suffices h: i49.val < 2 ^ 52 * 2 ^ 52
+    · scalar_tac
+    ·
+
+  · interval_cases i
   · constructor
-    · sorry
+    · interval_cases i
+      ·
+
     · constructor
       · grind
       · sorry
@@ -625,9 +5037,9 @@ theorem montgomery_reduce_spec (a : Array U128 9#usize)
 
 
 
+
+
 -/
-
-
 
 
 
