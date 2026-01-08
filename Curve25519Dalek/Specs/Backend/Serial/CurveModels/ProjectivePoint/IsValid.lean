@@ -76,9 +76,9 @@ Input bounds: All coordinate limbs are assumed < 2^52 (standard validity bounds)
 @[progress]
 theorem is_valid_spec
     (self : ProjectivePoint)
-    (h_selfX_bounds : ∀ i < 5, (self.X[i]!).val < 2 ^ 52)
-    (h_selfY_bounds : ∀ i < 5, (self.Y[i]!).val < 2 ^ 52)
-    (h_selfZ_bounds : ∀ i < 5, (self.Z[i]!).val < 2 ^ 52) :
+    (h_selfX_bounds : ∀ i < 5, (self.X[i]!).val < 2 ^ 53)
+    (h_selfY_bounds : ∀ i < 5, (self.Y[i]!).val < 2 ^ 53)
+    (h_selfZ_bounds : ∀ i < 5, (self.Z[i]!).val < 2 ^ 53) :
     ∃ result, is_valid self = ok result ∧
     let X := Field51_as_Nat self.X
     let Y := Field51_as_Nat self.Y

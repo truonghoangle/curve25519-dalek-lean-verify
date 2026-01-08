@@ -72,7 +72,10 @@ let T' := Field51_as_Nat e.T
 X' % p = (X * Z) % p ∧
 Y' % p = (Y * Z) % p ∧
 Z' % p = (Z^2) % p ∧
-T' % p = (X * Y) % p
+T' % p = (X * Y) % p ∧
+(∀ i, i < 5 → (e.Y[i]!).val < 2 ^ 52) ∧
+(∀ i, i < 5 → (e.Z[i]!).val < 2 ^ 52) ∧
+( ∀ i, i < 5 → (e.T[i]!).val < 2 ^ 52)
 := by
   unfold as_extended
   progress*

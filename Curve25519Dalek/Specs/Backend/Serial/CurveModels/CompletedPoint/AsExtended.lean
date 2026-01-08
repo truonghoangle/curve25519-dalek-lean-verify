@@ -71,11 +71,16 @@ let T' := Field51_as_Nat e.T
 X' % p = (X * T) % p ∧
 Y' % p = (Y * Z) % p ∧
 Z' % p = (Z * T) % p ∧
-T' % p = (X * Y) % p
+T' % p = (X * Y) % p ∧
+(∀ i, i < 5 → (e.X[i]!).val < 2 ^ 52) ∧
+(∀ i, i < 5 → (e.Y[i]!).val < 2 ^ 52) ∧
+(∀ i, i < 5 → (e.Z[i]!).val < 2 ^ 52) ∧
+( ∀ i, i < 5 → (e.T[i]!).val < 2 ^ 52)
 := by
   unfold as_extended
   progress*
   rw[← Nat.ModEq,← Nat.ModEq,← Nat.ModEq, ← Nat.ModEq]
   simp_all
+
 
 end curve25519_dalek.backend.serial.curve_models.CompletedPoint
