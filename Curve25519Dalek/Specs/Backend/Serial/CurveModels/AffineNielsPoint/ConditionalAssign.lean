@@ -5,7 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-import
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.ConditionalAssign
 /-! # Spec Theorem for `AffineNielsPoint::conditional_assign`
 
 Specification and proof for `AffineNielsPoint::conditional_assign`.
@@ -72,7 +72,6 @@ theorem conditional_assign_spec
       if choice.val = 1#u8 then other.xy2d[i]!.val else self.xy2d[i]!.val) := by
   unfold conditional_assign
   progress*
-
-
+  grind  
 
 end curve25519_dalek.backend.serial.curve_models.ConditionallySelectableAffineNielsPoint

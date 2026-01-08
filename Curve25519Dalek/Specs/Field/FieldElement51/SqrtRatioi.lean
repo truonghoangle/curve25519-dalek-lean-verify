@@ -35,14 +35,12 @@ open curve25519_dalek.backend.serial.u64
 open curve25519_dalek.backend.serial.u64.field.FieldElement51
 namespace curve25519_dalek.field.FieldElement51
 
-
 theorem modEq_zero_iff (a n : ℕ) : a ≡ 0 [MOD n] ↔  a % n = 0 := by simp [Nat.ModEq]
 
 theorem modEq_one_iff (a : ℕ) : a ≡ 1 [MOD p] ↔  a % p = 1 := by
   simp [Nat.ModEq]
   have :1 % p= 1:= by unfold p; decide
   rw[this]
-
 
 theorem mod_two_Eq_one_iff (a : ℕ) : a ≡ 1 [MOD 2] ↔  a % 2 = 1 := by simp [Nat.ModEq]
 
@@ -52,10 +50,8 @@ theorem mod_two_zero_or_one (a : ℕ) : (a ≡ 1 [MOD 2]) ∨  (a ≡ 0 [MOD 2])
   simp [Nat.ModEq]
   grind
 
-
 theorem pow_add_one (a n : ℕ) : a ^ n * a = a^ (n + 1) := by
   grind
-
 
 theorem nat_sq_of_add_modeq_zero {a b p : ℕ}
   (h : a + b ≡ 0 [MOD p]) :
@@ -97,9 +93,8 @@ theorem nat_sqrt_m1_sq_of_add_modeq_zero {a b : ℕ}
   simp at h6
   exact h6.trans (h1.symm)
 
-
 theorem eq_to_bytes_eq_Field51_as_Nat
-    (u v : backend.serial.u64.field.FieldElement51)
+    {u v : backend.serial.u64.field.FieldElement51}
     (h : u.to_bytes = v.to_bytes) :
   Field51_as_Nat u % p = Field51_as_Nat v % p := by
   classical
@@ -115,9 +110,6 @@ theorem eq_to_bytes_eq_Field51_as_Nat
     have h2 : Nat.ModEq p (U8x32_as_Nat rv) (Field51_as_Nat v) := hrv_mod
     exact (Nat.ModEq.symm h1).trans h2
   simpa [Nat.ModEq] using huv_mod
-
-
-
 
 lemma zero_mod_lt_zero {u p : ℕ} (hu_lt : u < p) (hu_mod : u ≡ 0 [MOD p]) :
     u = 0 := by
@@ -151,17 +143,11 @@ theorem to_bytes_zero_of_Field51_as_Nat_zero
   rw [← hru_eq]
   exact hu
 
-
-
 theorem mod_sq_mod (a p : ℕ) : (a % p) ^ 2 ≡ a ^ 2 [MOD p] := by
   exact (Nat.mod_modEq a p).pow 2
 
-
 theorem mod_mul_mod (a b : ℕ) : (a % p) * (b % p) ≡ a * b [MOD p] := by
  exact ((Nat.mod_modEq a p).mul_right (b % p)).trans  ((Nat.mod_modEq b p).mul_left a)
-
-
-
 
 theorem mod_sq_mod_mul (a b p : ℕ) : (a % p) ^ 2 * b ≡ a ^ 2 * b[MOD p] := by
   exact (Nat.ModEq.mul_right  b (mod_sq_mod a p))
@@ -221,9 +207,6 @@ theorem SQRT_M1_not_square (x : ℕ) :
     simp at this
     -- END TASK
 
-
-
-
 lemma gcd_one_of_p {a : ℕ}
    (ha : ¬a ≡ 0 [MOD p]) : p.gcd a = 1 := by
     rw[Nat.modEq_zero_iff_dvd] at ha
@@ -231,8 +214,6 @@ lemma gcd_one_of_p {a : ℕ}
     apply Nat.Coprime.symm at this
     apply Nat.Coprime.gcd_eq_one at this
     apply this
-
-
 
 lemma zero_of_mul_SQRT_M1_zero {a : ℕ} (ha : a * Field51_as_Nat constants.SQRT_M1 ≡ 0 [MOD p]) :
   a ≡ 0 [MOD p] := by
@@ -252,8 +233,6 @@ lemma zero_of_mul_SQRT_M1_zero {a : ℕ} (ha : a * Field51_as_Nat constants.SQRT
     simp
   apply eq.symm.trans this
 
-
-
 theorem mul_zero_eq_or {a b : ℕ} {p : ℕ} (hp : p.Prime)
     (hab : a * b ≡ 0 [MOD p]) :
     a ≡ 0 [MOD p] ∨ b ≡ 0 [MOD p] := by
@@ -264,10 +243,6 @@ theorem mul_zero_eq_or {a b : ℕ} {p : ℕ} (hp : p.Prime)
     exact Nat.mod_eq_zero_of_dvd ha
   · right
     exact Nat.mod_eq_zero_of_dvd hb
-
-
-
-
 
 theorem pow_div_two_eq_neg_one_or_one {a : ℕ} (ha : ¬ a ≡ 0 [MOD p]) :
     a ^ ((p -1) / 2) ≡ 1 [MOD p]∨ a ^ ((p-1) / 2) ≡ p - 1 [MOD p] := by
@@ -305,8 +280,6 @@ theorem pow_div_two_eq_neg_one_or_one {a : ℕ} (ha : ¬ a ≡ 0 [MOD p]) :
       have :  1 + (p-1) =p := by unfold p; scalar_tac
       simp[this] at r
       simp[r]
-
-
 
 theorem pow_div_four_eq_four_cases {a : ℕ} (ha : ¬ a ≡ 0 [MOD p]) :
     a ^ ((p -1) / 4) ≡ 1 [MOD p] ∨
@@ -419,27 +392,8 @@ theorem pow_div_four_eq_four_cases {a : ℕ} (ha : ¬ a ≡ 0 [MOD p]) :
     have r:= r.trans this
     simp[r]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set_option maxHeartbeats 2000000000 in
 -- scalar_tac haevy
-
 lemma eq_U8x32_as_Nat_eq {a b : Aeneas.Std.Array U8 32#usize}
     (hab : U8x32_as_Nat a = U8x32_as_Nat b) : a = b := by
     apply Subtype.ext
@@ -448,40 +402,6 @@ lemma eq_U8x32_as_Nat_eq {a b : Aeneas.Std.Array U8 32#usize}
     intro i h1 h2
     interval_cases i
     all_goals(simp[U8x32_as_Nat,Finset.sum_range_succ] at hab; scalar_tac)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /-
 Natural language description:
@@ -526,109 +446,58 @@ set_option maxHeartbeats  1000000000000 in
 
 @[progress]
 theorem sqrt_ratio_i_spec
-
     (u : backend.serial.u64.field.FieldElement51)
     (v : backend.serial.u64.field.FieldElement51)
     (h_u_bounds : ∀ i, i < 5 → (u[i]!).val ≤ 2 ^ 52 - 1)
     (h_v_bounds : ∀ i, i < 5 → (v[i]!).val ≤ 2 ^ 52 - 1) :
-
     ∃ c, sqrt_ratio_i u v = ok c ∧
     let u_nat := Field51_as_Nat u % p
     let v_nat := Field51_as_Nat v % p
     let r_nat := Field51_as_Nat c.2 % p
     let i_nat := Field51_as_Nat backend.serial.u64.constants.SQRT_M1 % p
-
     -- Case 1: u is zero
     (u_nat = 0 →
     c.1.val = 1#u8 ∧ r_nat = 0 ) ∧
-
     -- Case 2: u is nonzero and v is zero
     (u_nat ≠ 0 ∧ v_nat = 0 →
     c.1.val = 0#u8 ∧ r_nat = 0 ∧
     (∀ i < 5,  c.2[i]!.val ≤ 2 ^ 53 - 1)) ∧
-
     -- Case 3: u and v are nonzero and u/v is a square
     (u_nat ≠ 0 ∧ v_nat ≠ 0 ∧ (∃ x : Nat, (x^2 * v_nat) % p = u_nat) →
     c.1.val = 1#u8 ∧ (r_nat ^ 2 * v_nat) % p = u_nat ∧
     (∀ i < 5,  c.2[i]!.val ≤ 2 ^ 53 - 1)) ∧
-
     -- Case 4: u and v are nonzero and u/v is not a square
     (u_nat ≠ 0 ∧ v_nat ≠ 0 ∧ (¬(∃ x : Nat, (x^2 * v_nat) % p = u_nat)) →
     c.1.val = 0#u8 ∧ (r_nat ^2 * v_nat) % p = (i_nat * u_nat) % p ∧
     (∀ i < 5,  c.2[i]!.val ≤ 2 ^ 53 - 1))
-
     := by
-
     unfold sqrt_ratio_i subtle.BitOrChoiceChoiceChoice.bitor
     unfold subtle.ConditionallyNegatable.Blanket.conditional_negate
     progress*
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-      unfold constants.SQRT_M1
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · grind
+    · unfold constants.SQRT_M1
       decide
-      -- END TASK
-    · -- BEGIN TASK
-      unfold constants.SQRT_M1
+    · unfold constants.SQRT_M1
       decide
-      -- END TASK
+    · grind
     · -- BEGIN TASK
-      grind
-      -- END TASK
-    · -- BEGIN TASK
-
       have eq1_mod: (Field51_as_Nat r_prime)^2 *  (Field51_as_Nat v)
         ≡ (Field51_as_Nat constants.SQRT_M1) ^2 * (Field51_as_Nat u ^ (2 + (2 ^ 252 - 3) * 2) * Field51_as_Nat v ^ (7 * 2 ^ 253 - 35))
         [MOD p]:= by
@@ -681,8 +550,6 @@ theorem sqrt_ratio_i_spec
         clear this
         rw[← pow_add, ← pow_mul, ← pow_add, pow_add_one,
         (by simp : (2 + 1) * 2 + ((2 + 1) * 2 + 1) * ((2 ^ 252 - 3) * 2) + 1= 7 * 2 ^ 253 - 35)]
-
-
       have check_eq_v: Field51_as_Nat check ≡    Field51_as_Nat u ^ (2 + (2 ^ 252 - 3) * 2) * Field51_as_Nat v ^ (7 * 2 ^ 253 - 35) [MOD p] := by
         apply check_post_1.trans
         have := fe5_post_1.mul_left (Field51_as_Nat v)
@@ -725,28 +592,14 @@ theorem sqrt_ratio_i_spec
             simp
             ring
         rw[this]
-
-
       have check_eq_mod: (Field51_as_Nat r_prime)^2 *  (Field51_as_Nat v)
         ≡ (Field51_as_Nat constants.SQRT_M1) ^2 *Field51_as_Nat check [MOD p] := by
         have := Nat.ModEq.mul_left ((Field51_as_Nat constants.SQRT_M1) ^2) check_eq_v
         apply Nat.ModEq.trans eq1_mod
         apply Nat.ModEq.symm this
-
-
       have :=nat_sqrt_m1_sq_of_add_modeq_zero fe6_post_1
-
       have check_eq_r_v:= check_post_1.trans (fe5_post_1.mul_left (Field51_as_Nat v))
       rw[mul_comm] at check_eq_r_v
-
-
-
-
-
-
-
-
-
       by_cases first_choice :  flipped_sign_sqrt.val = 1#u8
       · -- BEGIN TASK
         simp[first_choice]
@@ -779,7 +632,6 @@ theorem sqrt_ratio_i_spec
               have : Field51_as_Nat r_prime % p % 2 = 0 := by
                       simp[Nat.ModEq] at r_prime_eq0
                       rw[r_prime_eq0]
-
               simp[r_is_negative_post] at r2_post
               have : Field51_as_Nat r2 = Field51_as_Nat r_prime := by
                 simp[Field51_as_Nat, Finset.sum_range_succ]
@@ -799,7 +651,7 @@ theorem sqrt_ratio_i_spec
                 have : flipped_sign_sqrt = Choice.one := by
                   exact (curve25519_dalek.field.FieldElement51.Choice.val_eq_one_iff _).mp first_choice
                 simp[this] at flipped_sign_sqrt_post
-                have := eq_to_bytes_eq_Field51_as_Nat check fe6 flipped_sign_sqrt_post
+                have := eq_to_bytes_eq_Field51_as_Nat  flipped_sign_sqrt_post
                 rw[← Nat.ModEq] at this
                 have :=  Nat.ModEq.trans (Nat.ModEq.symm this) check0
                 have := Nat.ModEq.add_left (Field51_as_Nat u) this
@@ -847,7 +699,7 @@ theorem sqrt_ratio_i_spec
                     have : flipped_sign_sqrt = Choice.one := by
                         exact (curve25519_dalek.field.FieldElement51.Choice.val_eq_one_iff _).mp first_choice
                     simp[this] at flipped_sign_sqrt_post
-                    have this:= eq_to_bytes_eq_Field51_as_Nat check fe6 flipped_sign_sqrt_post
+                    have this:= eq_to_bytes_eq_Field51_as_Nat  flipped_sign_sqrt_post
                     rw[← Nat.ModEq] at this
                     have :=this.mul_left  (Field51_as_Nat constants.SQRT_M1 ^ 2)
                     rw[← modEq_zero_iff] at fe6_post_1
@@ -900,7 +752,7 @@ theorem sqrt_ratio_i_spec
                       have : flipped_sign_sqrt = Choice.one := by
                         exact (curve25519_dalek.field.FieldElement51.Choice.val_eq_one_iff _).mp first_choice
                       simp[this] at flipped_sign_sqrt_post
-                      have this:= eq_to_bytes_eq_Field51_as_Nat check fe6 flipped_sign_sqrt_post
+                      have this:= eq_to_bytes_eq_Field51_as_Nat  flipped_sign_sqrt_post
                       rw[← Nat.ModEq] at this
                       have :=this.mul_left  (Field51_as_Nat constants.SQRT_M1 ^ 2)
                       rw[← modEq_zero_iff] at fe6_post_1
@@ -937,7 +789,7 @@ theorem sqrt_ratio_i_spec
             have : flipped_sign_sqrt_i = Choice.one := by
               exact (curve25519_dalek.field.FieldElement51.Choice.val_eq_one_iff _).mp second_choice
             simp[this] at flipped_sign_sqrt_i_post
-            have := eq_to_bytes_eq_Field51_as_Nat check fe7 flipped_sign_sqrt_i_post
+            have := eq_to_bytes_eq_Field51_as_Nat  flipped_sign_sqrt_i_post
             rw[← Nat.ModEq] at this
             have := this.trans fe7_post_1
             have check_1:=this.mul_left  (Field51_as_Nat constants.SQRT_M1)
@@ -950,7 +802,7 @@ theorem sqrt_ratio_i_spec
               have : correct_sign_sqrt = Choice.one := by
                 exact (curve25519_dalek.field.FieldElement51.Choice.val_eq_one_iff _).mp choise3
               simp[this] at correct_sign_sqrt_post
-              have := eq_to_bytes_eq_Field51_as_Nat check u correct_sign_sqrt_post
+              have := eq_to_bytes_eq_Field51_as_Nat  correct_sign_sqrt_post
               rw[← Nat.ModEq] at this
               have :=this.mul_left  (Field51_as_Nat constants.SQRT_M1)
               have eq_im:=this.symm.trans u_eq1
@@ -1268,7 +1120,7 @@ theorem sqrt_ratio_i_spec
               have : correct_sign_sqrt = Choice.one := by
                 exact (curve25519_dalek.field.FieldElement51.Choice.val_eq_one_iff _).mp choise3
               simp[this] at correct_sign_sqrt_post
-              have check_eq_u:= eq_to_bytes_eq_Field51_as_Nat check u correct_sign_sqrt_post
+              have check_eq_u:= eq_to_bytes_eq_Field51_as_Nat  correct_sign_sqrt_post
               rw[← Nat.ModEq] at check_eq_u
               have v_eq_u:=check_eq_mod.trans (check_eq_u.mul_left  (Field51_as_Nat constants.SQRT_M1 ^2))
               simp[choise3, Choice.one]
@@ -1289,7 +1141,6 @@ theorem sqrt_ratio_i_spec
                 have : Field51_as_Nat r % p % 2 = 0 := by
                       simp[Nat.ModEq] at r_eq0
                       rw[r_eq0]
-
                 have : Field51_as_Nat r2 = Field51_as_Nat r := by
                   simp[Field51_as_Nat, Finset.sum_range_succ]
                   simp_all
@@ -1340,7 +1191,6 @@ theorem sqrt_ratio_i_spec
                               simp_all
                             rw[this]
                             -- END TASK
-
                       rw[← Nat.ModEq]
                       apply ((mod_sq_mod_mul (Field51_as_Nat r2) (Field51_as_Nat v) p)).trans
                       apply (r2_eq.mul_right (Field51_as_Nat v)).trans eq_im
@@ -1637,7 +1487,6 @@ theorem sqrt_ratio_i_spec
                               obtain ⟨ru, hu, hru_mod, hru_lt⟩ := to_bytes_spec fe7
                               obtain ⟨rcheck, hrcheck, hrcheck_mod, hrcheck_lt⟩ := to_bytes_spec check
                               have := this.trans hru_mod.symm
-
                               have check_eq_u:= hrcheck_mod.trans this
                               rw[Nat.ModEq] at check_eq_u
                               have := Nat.mod_eq_of_lt hru_lt
@@ -1645,7 +1494,6 @@ theorem sqrt_ratio_i_spec
                               have :=Nat.mod_eq_of_lt hrcheck_lt
                               rw[this] at check_eq_u
                               have := eq_U8x32_as_Nat_eq check_eq_u
-
                               simp[hrcheck, hu, this] at flipped_sign_sqrt_i_post
                               -- END TASK
                         -- END TASK
@@ -1662,25 +1510,16 @@ theorem sqrt_ratio_i_spec
                             interval_cases i
                             any_goals (expand r_post_2 with 5; scalar_tac)
                             -- END TASK
-
                         -- END TASK
-
                       -- END TASK
-
                     -- END TASK
-
                   -- END TASK
               -- END TASK
             -- END TASK
-
         -- END TASK
-
         -- END TASK
-
         -- END TASK
-
         -- END TASK
-
       -- END TASK
 
 

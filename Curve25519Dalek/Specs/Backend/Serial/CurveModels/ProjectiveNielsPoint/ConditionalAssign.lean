@@ -5,7 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-import Curve25519Dalek/Specs/Backend/Serial/U64/Field.FieldElement51.ConditionalAssign
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.ConditionalAssign
 /-! # Spec Theorem for `ProjectiveNielsPoint::conditional_assign`
 
 Specification and proof for `ProjectiveNielsPoint::conditional_assign`.
@@ -74,6 +74,7 @@ theorem conditional_assign_spec
       if choice.val = 1#u8 then other.T2d[i]!.val else self.T2d[i]!.val) := by
   unfold conditional_assign
   progress*
+  grind
 
 
 end curve25519_dalek.backend.serial.curve_models.ConditionallySelectableProjectiveNielsPoint

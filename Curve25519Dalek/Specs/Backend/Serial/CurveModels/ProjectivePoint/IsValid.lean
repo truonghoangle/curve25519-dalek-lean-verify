@@ -1,3 +1,4 @@
+
 /-
 Copyright (c) 2025 Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -10,6 +11,9 @@ import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Add
 import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Sub
 import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Mul
 import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Square
+import Curve25519Dalek.Specs.Field.FieldElement51.IsNegative
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.CtEq
+import Curve25519Dalek.Specs.Field.FieldElement51.SqrtRatioi
 
 /-! # Spec Theorem for `ProjectivePoint::is_valid`
 
@@ -35,6 +39,7 @@ open Aeneas.Std Result
 open curve25519_dalek.backend.serial.u64.field
 open curve25519_dalek.backend.serial.curve_models
 open curve25519_dalek.backend.serial.u64.constants
+open curve25519_dalek.field.FieldElement51
 namespace curve25519_dalek.backend.serial.curve_models.ValidityCheckProjectivePoint
 
 /-
@@ -78,7 +83,7 @@ theorem is_valid_spec
     let X := Field51_as_Nat self.X
     let Y := Field51_as_Nat self.Y
     let Z := Field51_as_Nat self.Z
-    (result = true ↔ ((Y^2 - X^2) * Z^2) % p = (Z^4 + Field51_as_Nat EDWARDS_D * X^2 * Y^2) % p) := by
+    (result = true ↔ (Y^2 *Z^2 ) % p = ( X^2 * Z^2 +Z^4 + Field51_as_Nat EDWARDS_D * X^2 * Y^2) % p) := by
   unfold is_valid
   progress*
   · grind
@@ -90,139 +95,37 @@ theorem is_valid_spec
   · grind
   · grind
   · grind
+  · grind
+  · unfold EDWARDS_D
+    decide
+  · grind
+  · grind
+  · grind
+  · unfold field.PartialEqFieldElement51FieldElement51.eq
+    progress*
+    unfold subtle.FromBoolChoice.from
+    simp_all
+    constructor
+    · -- Forward direction: result = true → curve equation holds
+      intro h_true
+      rw [← Nat.ModEq]
+      have : c = Choice.one := by
+        exact (curve25519_dalek.field.FieldElement51.Choice.val_eq_one_iff _).mp h_true
+      simp[this] at c_post
+      have c_post:= eq_to_bytes_eq_Field51_as_Nat c_post
+      have : Field51_as_Nat rhs = Field51_as_Nat ZZZZ + Field51_as_Nat fe2 := by
+        simp[Field51_as_Nat, Finset.sum_range_succ]
+        grind
+      rw [←  Nat.ModEq, this] at c_post
+      rw [←  Nat.ModEq] at fe_post_2
+      have eq1:= fe_post_2.mul_right ( Field51_as_Nat ZZ)
+      have := ((lhs_post_1.symm.trans c_post).add_right ( Field51_as_Nat XX * Field51_as_Nat ZZ) )
+      rw[← add_mul] at this
+      have :=eq1.symm.trans this
+      have
 
 
 
-
-
-  · intro i hi
-    apply lt_trans (fe_bounds i hi)
-    norm_num
-  · intro i hi
-    apply lt_trans (h_selfZ_bounds i hi)
-    norm_num
-  -- Compute fe1 = XX * YY
-  progress as ⟨fe1, h_fe1, fe1_bounds⟩
-  · intro i hi
-    apply lt_trans (h_selfX_bounds i hi)
-    norm_num
-  · intro i hi
-    apply lt_trans (h_selfY_bounds i hi)
-    norm_num
-  -- Compute fe2 = EDWARDS_D * fe1 = d * (XX * YY)
-  progress as ⟨fe2, h_fe2, fe2_bounds⟩
-  -- Compute rhs = ZZZZ + fe2
-  progress as ⟨rhs, h_rhs, rhs_bounds⟩
-  · intro i hi
-    apply lt_trans (ZZZZ_bounds i hi)
-    norm_num
-  · intro i hi
-    apply lt_trans (fe2_bounds i hi)
-    norm_num
-  -- Test equality: lhs == rhs
-  progress as ⟨result, h_result⟩
-
-  refine ⟨h_result, ?_⟩
-
-  -- Now prove the iff statement
-  constructor
-  · -- Forward direction: result = true → curve equation holds
-    intro h_true
-    rw [← Nat.ModEq]
-    -- From h_result: result = true ↔ Field51_as_Nat lhs = Field51_as_Nat rhs (mod p)
-    have h_eq : Field51_as_Nat lhs ≡ Field51_as_Nat rhs [MOD p] := by
-      rw [← Nat.ModEq] at h_result
-      exact h_result.mp h_true
-    -- Substitute known equalities
-    have h_lhs_eq : Field51_as_Nat lhs ≡ (Field51_as_Nat YY - Field51_as_Nat XX) * Field51_as_Nat ZZ [MOD p] := by
-      calc Field51_as_Nat lhs
-        _ ≡ Field51_as_Nat fe * Field51_as_Nat ZZ [MOD p] := by
-            rw [← Nat.ModEq] at h_lhs; exact h_lhs
-        _ ≡ (Field51_as_Nat YY - Field51_as_Nat XX) * Field51_as_Nat ZZ [MOD p] := by
-            rw [← Nat.ModEq] at h_fe
-            exact Nat.ModEq.mul_right _ h_fe
-    have h_rhs_eq : Field51_as_Nat rhs ≡ Field51_as_Nat ZZZZ + Ed25519.d * (Field51_as_Nat XX * Field51_as_Nat YY) [MOD p] := by
-      calc Field51_as_Nat rhs
-        _ ≡ Field51_as_Nat ZZZZ + Field51_as_Nat fe2 [MOD p] := by
-            rw [← Nat.ModEq] at h_rhs; exact h_rhs
-        _ ≡ Field51_as_Nat ZZZZ + (Ed25519.d * Field51_as_Nat fe1) [MOD p] := by
-            rw [← Nat.ModEq] at h_fe2
-            exact Nat.ModEq.add_left _ h_fe2
-        _ ≡ Field51_as_Nat ZZZZ + Ed25519.d * (Field51_as_Nat XX * Field51_as_Nat YY) [MOD p] := by
-            rw [← Nat.ModEq] at h_fe1
-            have := Nat.ModEq.mul_left Ed25519.d h_fe1
-            exact Nat.ModEq.add_left _ this
-    -- Substitute XX, YY, ZZ, ZZZZ
-    have h_XX_eq : Field51_as_Nat XX ≡ (Field51_as_Nat self.X)^2 [MOD p] := by
-      rw [← Nat.ModEq] at h_XX; exact h_XX
-    have h_YY_eq : Field51_as_Nat YY ≡ (Field51_as_Nat self.Y)^2 [MOD p] := by
-      rw [← Nat.ModEq] at h_YY; exact h_YY
-    have h_ZZ_eq : Field51_as_Nat ZZ ≡ (Field51_as_Nat self.Z)^2 [MOD p] := by
-      rw [← Nat.ModEq] at h_ZZ; exact h_ZZ
-    have h_ZZZZ_eq : Field51_as_Nat ZZZZ ≡ (Field51_as_Nat self.Z)^4 [MOD p] := by
-      calc Field51_as_Nat ZZZZ
-        _ ≡ (Field51_as_Nat ZZ)^2 [MOD p] := by
-            rw [← Nat.ModEq] at h_ZZZZ; exact h_ZZZZ
-        _ ≡ ((Field51_as_Nat self.Z)^2)^2 [MOD p] := by
-            exact Nat.ModEq.pow 2 h_ZZ_eq
-        _ = (Field51_as_Nat self.Z)^4 := by ring
-    -- Combine everything
-    calc ((Field51_as_Nat self.Y)^2 - (Field51_as_Nat self.X)^2) * (Field51_as_Nat self.Z)^2
-      _ ≡ (Field51_as_Nat YY - Field51_as_Nat XX) * Field51_as_Nat ZZ [MOD p] := by
-          apply Nat.ModEq.mul
-          · exact Nat.ModEq.sub_right _ h_YY_eq h_XX_eq
-          · exact h_ZZ_eq
-      _ ≡ Field51_as_Nat lhs [MOD p] := h_lhs_eq.symm
-      _ ≡ Field51_as_Nat rhs [MOD p] := h_eq
-      _ ≡ Field51_as_Nat ZZZZ + Ed25519.d * (Field51_as_Nat XX * Field51_as_Nat YY) [MOD p] := h_rhs_eq
-      _ ≡ (Field51_as_Nat self.Z)^4 + Ed25519.d * ((Field51_as_Nat self.X)^2 * (Field51_as_Nat self.Y)^2) [MOD p] := by
-          apply Nat.ModEq.add
-          · exact h_ZZZZ_eq
-          · apply Nat.ModEq.mul_left
-            exact Nat.ModEq.mul h_XX_eq h_YY_eq
-
-  · -- Backward direction: curve equation holds → result = true
-    intro h_curve
-    -- From h_result: result = true ↔ Field51_as_Nat lhs = Field51_as_Nat rhs (mod p)
-    rw [← Nat.ModEq] at h_result
-    apply h_result.mpr
-    -- Need to show: Field51_as_Nat lhs ≡ Field51_as_Nat rhs [MOD p]
-    -- We have h_curve: (Y² - X²) * Z² ≡ Z⁴ + d * X² * Y² [MOD p]
-    rw [← Nat.ModEq] at h_curve
-    -- Build up lhs
-    have h_lhs_eq : Field51_as_Nat lhs ≡ (Field51_as_Nat self.Y^2 - Field51_as_Nat self.X^2) * Field51_as_Nat self.Z^2 [MOD p] := by
-      rw [← Nat.ModEq] at h_lhs h_fe h_XX h_YY h_ZZ
-      calc Field51_as_Nat lhs
-        _ ≡ Field51_as_Nat fe * Field51_as_Nat ZZ [MOD p] := h_lhs
-        _ ≡ (Field51_as_Nat YY - Field51_as_Nat XX) * Field51_as_Nat ZZ [MOD p] := by
-            exact Nat.ModEq.mul_right _ h_fe
-        _ ≡ (Field51_as_Nat self.Y^2 - Field51_as_Nat self.X^2) * Field51_as_Nat self.Z^2 [MOD p] := by
-            apply Nat.ModEq.mul
-            · exact Nat.ModEq.sub_right _ h_YY h_XX
-            · exact h_ZZ
-    -- Build up rhs
-    have h_rhs_eq : Field51_as_Nat rhs ≡ Field51_as_Nat self.Z^4 + Ed25519.d * (Field51_as_Nat self.X^2 * Field51_as_Nat self.Y^2) [MOD p] := by
-      rw [← Nat.ModEq] at h_rhs h_fe2 h_fe1 h_XX h_YY h_ZZ h_ZZZZ
-      calc Field51_as_Nat rhs
-        _ ≡ Field51_as_Nat ZZZZ + Field51_as_Nat fe2 [MOD p] := h_rhs
-        _ ≡ Field51_as_Nat ZZZZ + Ed25519.d * Field51_as_Nat fe1 [MOD p] := by
-            exact Nat.ModEq.add_left _ h_fe2
-        _ ≡ Field51_as_Nat ZZZZ + Ed25519.d * (Field51_as_Nat XX * Field51_as_Nat YY) [MOD p] := by
-            exact Nat.ModEq.add_left _ (Nat.ModEq.mul_left _ h_fe1)
-        _ ≡ Field51_as_Nat ZZ^2 + Ed25519.d * (Field51_as_Nat self.X^2 * Field51_as_Nat self.Y^2) [MOD p] := by
-            apply Nat.ModEq.add
-            · exact h_ZZZZ
-            · apply Nat.ModEq.mul_left
-              exact Nat.ModEq.mul h_XX h_YY
-        _ ≡ Field51_as_Nat self.Z^2^2 + Ed25519.d * (Field51_as_Nat self.X^2 * Field51_as_Nat self.Y^2) [MOD p] := by
-            exact Nat.ModEq.add_right _ (Nat.ModEq.pow 2 h_ZZ)
-        _ = Field51_as_Nat self.Z^4 + Ed25519.d * (Field51_as_Nat self.X^2 * Field51_as_Nat self.Y^2) := by
-            ring
-    -- Combine
-    calc Field51_as_Nat lhs
-      _ ≡ (Field51_as_Nat self.Y^2 - Field51_as_Nat self.X^2) * Field51_as_Nat self.Z^2 [MOD p] := h_lhs_eq
-      _ ≡ Field51_as_Nat self.Z^4 + Ed25519.d * (Field51_as_Nat self.X^2 * Field51_as_Nat self.Y^2) [MOD p] := h_curve
-      _ ≡ Field51_as_Nat rhs [MOD p] := h_rhs_eq.symm
 
 end curve25519_dalek.backend.serial.curve_models.ValidityCheckProjectivePoint
 
