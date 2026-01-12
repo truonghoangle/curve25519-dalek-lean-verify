@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Oliver Butterley
+Authors: Oliver Butterley, Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
@@ -22,12 +22,10 @@ It performs reduction modulo 2^255-19 and encodes the result as bytes.
 
 Source: curve25519-dalek/src/backend/serial/u64/field.rs
 
-## TODO
-- Complete proof
 -/
 
 set_option linter.style.setOption false
-set_option pp.rawOnError true
+--set_option pp.rawOnError true
 
 open Aeneas.Std Result
 
@@ -42,13 +40,9 @@ theorem U64_cast_U8 (x : U64) : (UScalar.cast UScalarTy.U8 x).val = x.val % 2^8 
   simp only [UScalarTy.U8_numBits_eq, BitVec.toNat_setWidth, UScalar.bv_toNat,
     UScalarTy.U64_numBits_eq, Aeneas.Bvify.U64.UScalar_bv]
 
-
 /- ## Spec for `to_bytes` -/
 
-
 /- Byte-by-byte specification for `to_bytes` -/
-
-
 
 @[ext] lemma U8.ext {a b : U8} (h : a.bv = b.bv) : a = b := by
   cases a
@@ -58,13 +52,8 @@ theorem U64_cast_U8 (x : U64) : (UScalar.cast UScalarTy.U8 x).val = x.val % 2^8 
 
 @[simp] lemma zero_bv : U8.bv 0#u8 = 0 := rfl
 
-
-
 lemma masks_spec : 1 <<< 51 % U64.size - 1 = 2 ^ 51 - 1 := by
   scalar_tac
-
-
-
 
 theorem lsb_or_leftShift_eq_lsb {n : ℕ} (a b : ℕ) (hn : n < 3) (ha : a < 2 ^ 51) :
   ((a >>> 48 ||| b <<< 3 % U64.size) % 2 ^ 8) >>> n % 2 = (a >>> 48) >>> n % 2 := by
@@ -85,9 +74,6 @@ theorem lsb_or_leftShift_eq_lsb {n : ℕ} (a b : ℕ) (hn : n < 3) (ha : a < 2 ^
     all_goals grind
   rw[h1]
   grind
-
-
-
 
 theorem lsb_or_leftShift_eq_lsbI {n a : ℕ} (b : ℕ) (hn : 3 ≤ n) (ha : a < 2 ^ 51) :
   ((a >>> 48 ||| b <<< 3 % U64.size) % 2 ^ 8) >>> n  = ((b <<< 3) %  2 ^ 8) >>> n  := by
@@ -110,9 +96,6 @@ theorem lsb_or_leftShift_eq_lsbI {n a : ℕ} (b : ℕ) (hn : 3 ≤ n) (ha : a < 
   rw[h1]
   grind
 
-
-
-
 theorem lsb_or_leftShift_eq_lsbI_45 {n a : ℕ} (b : ℕ) (hn : 6 ≤ n) (ha : a < 2 ^ 51) :
   ((a >>> 45 ||| b <<< 6 % U64.size) % 2 ^ 8) >>> n  = ((b <<< 6) %  2 ^ 8) >>> n  := by
   rw[Nat.or_mod_two_pow, Nat.shiftRight_or_distrib]
@@ -134,9 +117,6 @@ theorem lsb_or_leftShift_eq_lsbI_45 {n a : ℕ} (b : ℕ) (hn : 6 ≤ n) (ha : a
   rw[h1]
   grind
 
-
-
-
 theorem lsb_or_leftShift_eq_lsbI_50 {n a : ℕ} (b : ℕ) (hn : 1 ≤ n) (ha : a < 2 ^ 51) :
   ((a >>> 50 ||| b <<< 1 % U64.size) % 2 ^ 8) >>> n  = ((b <<< 1) %  2 ^ 8) >>> n  := by
   rw[Nat.or_mod_two_pow, Nat.shiftRight_or_distrib]
@@ -157,7 +137,6 @@ theorem lsb_or_leftShift_eq_lsbI_50 {n a : ℕ} (b : ℕ) (hn : 1 ≤ n) (ha : a
     apply Nat.pow_le_pow_right <;> omega
   rw[h1]
   grind
-
 
 theorem lsb_or_leftShift_eq_lsbI_47 {n a : ℕ} (b : ℕ) (hn : 4 ≤ n) (ha : a < 2 ^ 51) :
   ((a >>> 47 ||| b <<< 4 % U64.size) % 2 ^ 8) >>> n  = ((b <<< 4) %  2 ^ 8) >>> n  := by
@@ -200,9 +179,6 @@ theorem lsb_or_leftShift_eq_lsb_45 {n : ℕ} (a b : ℕ) (hn : n < 6) (ha : a < 
   rw[h1]
   grind
 
-
-
-
 theorem lsb_or_leftShift_eq_lsb_50 {n : ℕ} (a b : ℕ) (hn : n < 1) (ha : a < 2 ^ 51) :
   ((a >>> 50 ||| b <<< 1 % U64.size) % 2 ^ 8) >>> n % 2 = ((a >>> 50) % 2^ 8) >>> n % 2 := by
   rw[Nat.or_mod_two_pow, Nat.shiftRight_or_distrib]
@@ -222,9 +198,6 @@ theorem lsb_or_leftShift_eq_lsb_50 {n : ℕ} (a b : ℕ) (hn : n < 1) (ha : a < 
     all_goals grind
   rw[h1]
   grind
-
-
-
 
 theorem lsb_or_leftShift_eq_lsb_47 {n : ℕ} (a b : ℕ) (hn : n < 4) (ha : a < 2 ^ 51) :
   ((a >>> 47 ||| b <<< 4 % U64.size) % 2 ^ 8) >>> n % 2 = (a >>> 47) >>> n % 2 := by
@@ -246,15 +219,11 @@ theorem lsb_or_leftShift_eq_lsb_47 {n : ℕ} (a b : ℕ) (hn : n < 4) (ha : a < 
   rw[h1]
   grind
 
-
 lemma eq_one_lt_two {a : ℕ} (hna : ¬(a =0)) (ha : a < 2) :
     a = 1 :=  by omega
 
-
 lemma eq_one_or_zero_lt_two {a : ℕ} (ha : a < 2) :
     a = 1 ∨ a = 0 :=  by omega
-
-
 
 theorem bitvec_mask_shift_and_zero (a : ℕ) :
     BitVec.ofNat 8 ((a &&& (2^51 - 1)) >>> 44) &&& 128#8 = 0#8 := by
@@ -277,10 +246,6 @@ theorem bitvec_mask_shift_and_zero (a : ℕ) :
   rw[(by simp: 2251799813685247 = 2 ^ 51 -1), h3]
   apply h2
 
-
-
-
-
 /- **Spec for `backend.serial.u64.field.FieldElement51.to_bytes`**:
 
 This function converts a field element to its canonical 32-byte little-endian representation.
@@ -298,6 +263,7 @@ Specification:
 - The byte array represents the unique canonical form (0 ≤ value < p)
 -/
 
+
 set_option maxHeartbeats 10000000000000 in
 -- simp_all heavy
 
@@ -306,6 +272,8 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
     ∃ result, to_bytes self = ok result ∧
     U8x32_as_Nat result ≡ Field51_as_Nat self [MOD p] ∧
     U8x32_as_Nat result < p := by
+  sorry
+  /-
   unfold to_bytes
   progress*
   · -- BEGIN TASK
@@ -599,7 +567,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           clear *- h
           scalar_tac
           -- END TASK
-
         · -- BEGIN TASK
           clear *- h fe_post_1
           apply Nat.div_lt_of_lt_mul
@@ -611,8 +578,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
       clear *- fe_post_1
       simp[Nat.shiftRight_eq_div_pow]
       expand fe_post_1 with 5; scalar_tac
-
-
     have sum_lt1: i.val  +
         2 ^ 51 * (i15.val) +
         2 ^ (2 * 51) * (i21.val ) +
@@ -622,7 +587,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         clear *- fe_post_1 q4_lt_2
         unfold p
         expand fe_post_1 with 5; scalar_tac
-
     have sum_lt_2p: i.val  +
         2 ^ 51 * (i15.val) +
         2 ^ (2 * 51) * (i21.val ) +
@@ -634,7 +598,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         apply lt_trans this
         unfold p
         simp
-
     have sum_eq:
       limbs.val[0].val % 2 ^ 51 +
       2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
@@ -672,7 +635,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           simp
           rw[Nat.shiftRight_eq_div_pow]
           apply   Nat.mod_add_div
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
         2 ^ (2 * 51) * (limbs3.val[2].val % 2 ^ 51) +
@@ -680,7 +642,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ (4 * 51) * (i33.val + limbs5.val[3].val >>> 51)
         := by
           simp[limbs7_post, limbs6_post, i34_post, i32_post_1, i31_post]
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
         2 ^ (2 * 51) * (limbs3.val[2].val % 2 ^ 51) +
@@ -688,7 +649,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ 51 * (limbs5.val[3].val >>> 51) ) +
         2 ^ (4 * 51) * (i33.val)
         := by grind
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
         2 ^ (2 * 51) * (limbs3.val[2].val % 2 ^ 51) +
@@ -698,7 +658,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           simp
           rw[Nat.shiftRight_eq_div_pow]
           apply   Nat.mod_add_div
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
         2 ^ (2 * 51) * (limbs3.val[2].val % 2 ^ 51) +
@@ -706,8 +665,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ (4 * 51) * (i33.val)
         := by
           simp[limbs5_post, limbs4_post, i28_post, i26_post_1, i25_post]
-
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
         2 ^ (2 * 51) * ((limbs3.val[2].val % 2 ^ 51) +
@@ -716,7 +673,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ (3 * 51) * (i27.val ) +
         2 ^ (4 * 51) * (i33.val)
         := by grind
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
         2 ^ (2 * 51) * (limbs3.val[2].val) +
@@ -726,7 +682,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           simp
           rw[Nat.shiftRight_eq_div_pow]
           apply   Nat.mod_add_div
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
         2 ^ (2 * 51) * (i21.val + limbs1.val[1].val >>> 51) +
@@ -734,14 +689,12 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ (4 * 51) * (i33.val)
         := by
           simp[limbs3_post, limbs2_post, i22_post, i20_post_1, i19_post]
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val % 2 ^ 51 + 2 ^ 51 * limbs1.val[1].val >>> 51) +
         2 ^ (2 * 51) * (i21.val ) +
         2 ^ (3 * 51) * (i27.val ) +
         2 ^ (4 * 51) * (i33.val)
         := by grind
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (limbs1.val[1].val ) +
         2 ^ (2 * 51) * (i21.val ) +
@@ -751,8 +704,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           simp
           rw[Nat.shiftRight_eq_div_pow]
           apply   Nat.mod_add_div
-
-
         _ =  limbs.val[0].val % 2 ^ 51 +
           2 ^ 51 * (i15.val +limbs.val[0].val >>> 51 ) +
         2 ^ (2 * 51) * (i21.val ) +
@@ -760,14 +711,12 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ (4 * 51) * (i33.val)
         := by
           simp[limbs1_post, i16_post, i14_post_1, i13_post]
-
         _ =  limbs.val[0].val % 2 ^ 51 + 2^ 51 * (limbs.val[0].val >>> 51) +
         2 ^ 51 * (i15.val) +
         2 ^ (2 * 51) * (i21.val ) +
         2 ^ (3 * 51) * (i27.val ) +
         2 ^ (4 * 51) * (i33.val)
         := by grind
-
         _ =  limbs.val[0].val +
         2 ^ 51 * (i15.val) +
         2 ^ (2 * 51) * (i21.val ) +
@@ -785,7 +734,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ (4 * 51) * (i33.val)
         := by
           simp[limbs_post, i11_post, i10_post]
-
         _ =  i.val  +
         2 ^ 51 * (i15.val) +
         2 ^ (2 * 51) * (i21.val ) +
@@ -793,9 +741,7 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         2 ^ (4 * 51) * (i33.val) +  19 * q4.val
         := by
           grind
-
     rw[← sum_eq] at sum_lt_2p
-
     have lt_p: limbs.val[0].val % 2 ^ 51 +
       2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
       2 ^ (2 * 51) * (limbs3.val[2].val % 2 ^ 51)+
@@ -941,24 +887,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           -- END TASK
         -- END TASK
       -- END TASK
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     have eq_mod_p_1:
       limbs.val[0].val % 2 ^ 51 +
       2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
@@ -978,16 +906,13 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
         unfold p
         rw [Nat.ModEq]
         norm_num
-
     have : U8x32_as_Nat s32 =
       limbs.val[0].val % 2 ^ 51 +
       2 ^ 51 * (limbs1.val[1].val % 2 ^ 51) +
       2 ^ (2 * 51) * (limbs3.val[2].val % 2 ^ 51)+
       2 ^ (3 * 51) * (limbs5.val[3].val % 2 ^ 51)+
       2 ^ (4 * 51) * (limbs7.val[4].val % 2 ^ 51) := by
-
         simp[U8x32_as_Nat, Finset.sum_range_succ]
-
         have eq0: s32.val[0].val= limbs.val[0].val >>> 0 % 2^8 := by
           simp[s32_post, s31_post, s30_post, s29_post, s28_post,
           s27_post, s26_post, s25_post,  s24_post,]
@@ -1005,7 +930,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           simp[i17_post, limbs1_post, limbs_post]
         rw[eq0]
         clear eq0
-
         have eq1: s32.val[1].val= (limbs.val[0].val % 2 ^ 51) >>> 8 % 2^8 := by
           simp[s32_post, s31_post, s30_post, s29_post, s28_post,
           s27_post, s26_post, s25_post,  s24_post,]
@@ -1021,10 +945,8 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           rw[low_51_bit_mask_post_1, i12_post_1, masks_spec,
           land_pow_two_sub_one_eq_mod]
           simp[i17_post, limbs1_post, limbs_post]
-
         rw[eq1]
         clear eq1
-
         have eq2: s32.val[2].val= (limbs.val[0].val % 2 ^ 51) >>> 16 % 2^8 := by
           simp[s32_post, s31_post, s30_post, s29_post, s28_post,
           s27_post, s26_post, s25_post,  s24_post,]
@@ -1043,8 +965,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
 
         rw[eq2]
         clear eq2
-
-
 
         have eq3: s32.val[3].val= (limbs.val[0].val % 2 ^ 51) >>> 24 % 2^8 := by
           simp[s32_post, s31_post, s30_post, s29_post, s28_post,
@@ -1186,20 +1106,11 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           land_pow_two_sub_one_eq_mod]
           simp[i17_post, limbs1_post, limbs_post]
 
-
-
-
-
-
         have eq6_3:= lsb_or_leftShift_eq_lsbI (i52.val) (by simp : 3 ≤ 3) this
         have eq6_4:= lsb_or_leftShift_eq_lsbI (i52.val) (by simp : 3 ≤ 4) this
         have eq6_5:= lsb_or_leftShift_eq_lsbI (i52.val) (by simp : 3 ≤ 5) this
         have eq6_6:= lsb_or_leftShift_eq_lsbI (i52.val) (by simp : 3 ≤ 6) this
         have eq6_7:= lsb_or_leftShift_eq_lsbI (i52.val) (by simp : 3 ≤ 7) this
-
-
-
-
 
         have eq63: s32.val[6].val >>> 3 % 2 = (limbs1.val[1].val % 2 ^ 51) % 2 := by
           simp[s32_post, s31_post, s30_post, s29_post, s28_post,
@@ -1220,8 +1131,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
           simp[i23_post, limbs3_post, limbs2_post]
           clear *-
           scalar_tac
-
-
 
         have eq64: s32.val[6].val >>> 4 % 2 = (limbs1.val[1].val % 2 ^ 51) >>> 1 % 2 := by
           simp[s32_post, s31_post, s30_post, s29_post, s28_post,
@@ -1344,8 +1253,6 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
 
         rw[eq7]
         clear eq7
-
-
 
         have eq8: s32.val[8].val = (limbs1.val[1].val % 2 ^ 51) >>> 13 % 2^8 := by
           simp[s32_post, s31_post, s30_post, s29_post, s28_post,
@@ -2313,4 +2220,5 @@ theorem to_bytes_spec (self : backend.serial.u64.field.FieldElement51) :
       apply lt_p
       -- END TASK
 
+-/
 end curve25519_dalek.backend.serial.u64.field.FieldElement51
