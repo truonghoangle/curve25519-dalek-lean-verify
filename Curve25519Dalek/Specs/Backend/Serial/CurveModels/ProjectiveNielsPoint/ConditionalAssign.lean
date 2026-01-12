@@ -64,17 +64,16 @@ theorem conditional_assign_spec
     (self other : backend.serial.curve_models.ProjectiveNielsPoint)
     (choice : subtle.Choice) :
     ∃ result, conditional_assign self other choice = ok result ∧
-    (result.Y_plus_X =
-      if choice.val = 1#u8 then other.Y_plus_X else self.Y_plus_X) ∧
-    (result.Y_minus_X =
-      if choice.val = 1#u8 then other.Y_minus_X else self.Y_minus_X) ∧
-    (result.Z =
-      if choice.val = 1#u8 then other.Z else self.Z) ∧
-    (result.T2d =
-      if choice.val = 1#u8 then other.T2d else self.T2d) := by
+    (∀ i < 5, result.Y_plus_X[i]!.val =
+      if choice.val = 1#u8 then other.Y_plus_X[i]!.val else self.Y_plus_X[i]!.val) ∧
+    (∀ i < 5, result.Y_minus_X[i]!.val =
+      if choice.val = 1#u8 then other.Y_minus_X[i]!.val else self.Y_minus_X[i]!.val) ∧
+    (∀ i < 5, result.Z[i]!.val =
+      if choice.val = 1#u8 then other.Z[i]!.val else self.Z[i]!.val) ∧
+    (∀ i < 5, result.T2d[i]!.val =
+      if choice.val = 1#u8 then other.T2d[i]!.val else self.T2d[i]!.val) := by
   unfold conditional_assign
   progress*
   grind
-
 
 end curve25519_dalek.backend.serial.curve_models.ConditionallySelectableProjectiveNielsPoint

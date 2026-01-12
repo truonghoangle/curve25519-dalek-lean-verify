@@ -5,7 +5,6 @@ Authors: AI Assistant
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
 /-! # Spec Theorem for `CompressedEdwardsY::decompress::step_1`
 
 Specification and proof for the first step of `CompressedEdwardsY::decompress`.
@@ -22,10 +21,11 @@ This function performs the initial decompression step which:
 
 open Aeneas.Std Result
 open curve25519_dalek.backend.serial.u64.constants
-open curve25519_dalek.backend.serial.u64.field.FieldElement51.Sub
-open curve25519_dalek.backend.serial.u64.field.FieldElement51.Mul
-open curve25519_dalek.backend.serial.u64.field.FieldElement51.Add
 open curve25519_dalek.backend.serial.u64.field.FieldElement51
+open curve25519_dalek.backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51
+open curve25519_dalek.backend.serial.u64.field.SubShared0FieldElement51SharedAFieldElement51FieldElement51
+open curve25519_dalek.backend.serial.u64.field.AddShared0FieldElement51SharedAFieldElement51FieldElement51
+open curve25519_dalek.backend.serial.u64.field
 open curve25519_dalek.field.FieldElement51
 namespace curve25519_dalek.edwards.CompressedEdwardsY
 
@@ -78,8 +78,7 @@ theorem step_1_spec (cey : edwards.CompressedEdwardsY)
       Z = ONE ∧
 
       -- Y is extracted from the input bytes
-      (
-                from_bytes bytes = ok Y) ∧
+      (from_bytes bytes = ok Y) ∧
 
       -- The computation follows the curve equation
       (∃ YY u v fe,

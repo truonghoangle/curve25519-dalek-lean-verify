@@ -5,6 +5,7 @@ Authors: AI Assistant
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Neg
 
 /-! # Spec Theorem for `CompressedEdwardsY::decompress::step_2`
 
@@ -20,7 +21,8 @@ This function performs the final decompression step which:
 -/
 
 open Aeneas.Std Result
-open curve25519_dalek.backend.serial.u64.field.FieldElement51.Mul
+open curve25519_dalek.backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51
+open curve25519_dalek.backend.serial.u64.field.NegShared0FieldElement51FieldElement51
 namespace curve25519_dalek.edwards.CompressedEdwardsY
 
 /-
@@ -72,7 +74,7 @@ theorem step_2_spec
       -- The sign bit is extracted from the compressed representation
       -- X is conditionally negated based on the sign bit
         (if sign_bit then
-          (result.X = X.neg)
+          (result.X = neg X)
         else
           result.X = X) ∧
 

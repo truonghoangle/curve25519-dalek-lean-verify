@@ -76,7 +76,7 @@ theorem neg_spec
     (Field51_as_Nat self.T2d + Field51_as_Nat result.T2d) % p = 0 := by
   unfold NegShared0ProjectiveNielsPointProjectiveNielsPoint.neg
   progress*
-  simp_all[add_comm]
+
 
 
 
