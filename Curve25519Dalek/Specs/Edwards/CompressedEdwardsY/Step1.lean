@@ -5,6 +5,9 @@ Authors: AI Assistant
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Add
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Sub
+import Curve25519Dalek.Specs.Backend.Serial.U64.Field.FieldElement51.Mul
 /-! # Spec Theorem for `CompressedEdwardsY::decompress::step_1`
 
 Specification and proof for the first step of `CompressedEdwardsY::decompress`.
@@ -69,7 +72,7 @@ Natural language specs:
 @[progress]
 theorem step_1_spec (cey : edwards.CompressedEdwardsY)
   (bytes : Aeneas.Std.Array U8 32#usize)
-  (h_byter: cey.as_bytes = ok bytes) :
+  (h_byter : cey.as_bytes = ok bytes) :
     ∃ result, edwards.decompress.step_1 cey = ok result ∧
 
       let (is_valid_y_coord, X, Y, Z) := result
