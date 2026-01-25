@@ -2782,10 +2782,12 @@
     "curve25519_dalek.constants.BASEPOINT_ORDER_PRIVATE",
     "curve25519_dalek.traits.IdentityEdwardsPoint"]},
   {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_base_spec (scalar : scalar.Scalar) :\n    ∃ result,\n    mul_base scalar = ok result ∧\n    edwards.MulSharedAScalarEdwardsPointEdwardsPoint.mul scalar\n      backend.serial.u64.constants.ED25519_BASEPOINT_POINT = result ∧\n      (∀ i < 5, result.Y[i]!.val < 2 ^ 53) ∧\n      ( ∀ i < 5, result.Z[i]!.val < 2 ^ 53) := by ...",
+   "spec_file": "Curve25519Dalek/Specs/Edwards/EdwardsPoint/MulBase.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `edwards.EdwardsPoint.mul_base`**:\n- No panic (always returns successfully)\n- Delegates to scalar multiplication with the Edwards basepoint constant\n- The returned EdwardsPoint equals the output of that scalar multiplication\n-/",
    "source": "curve25519-dalek/src/edwards.rs",
    "rust_name":
    "curve25519_dalek::edwards::{curve25519_dalek::edwards::EdwardsPoint}::mul_base",
@@ -3339,10 +3341,13 @@
    "fully_verified": false,
    "dependencies": []},
   {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+   "specified": true,
+   "spec_statement":
+   "theorem conditional_select_spec\n    (a b : montgomery.ProjectivePoint)\n    (choice : subtle.Choice) :\n    ∃ res,\n    conditional_select a b choice = ok res ∧\n    ∃ u w,\n      backend.serial.u64.field.ConditionallySelectableFieldElement51.conditional_select\n        a.U b.U choice = ok u ∧\n      backend.serial.u64.field.ConditionallySelectableFieldElement51.conditional_select\n        a.W b.W choice = ok w ∧\n      res = { U := u, W := w } := by ...",
+   "spec_file":
+   "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/ConditionalSelect.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.ConditionallySelectableProjectivePoint.conditional_select`**:\n- No panic (always returns successfully)\n- Selects each coordinate using `FieldElement51::conditional_select`\n- The resulting projective point is `{ U := u, W := w }` with the selected\n  coordinates\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{subtle::ConditionallySelectable for curve25519_dalek::montgomery::ProjectivePoint}::conditional_select",
@@ -3356,11 +3361,13 @@
    "fully_verified": false,
    "dependencies":
    ["curve25519_dalek.backend.serial.u64.field.ConditionallySelectableFieldElement51.conditional_select"]},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "\n\n\ntheorem ct_eq_spec (self other : MontgomeryPoint) :\n    ∃ c,\n    ct_eq self other = ok c ∧\n    ∃ self_fe other_fe,\n      from_bytes self = ok self_fe ∧\n      from_bytes other = ok other_fe ∧\n      field.ConstantTimeEqFieldElement51.ct_eq self_fe other_fe = ok c := by ...",
+   "spec_file": "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/CtEq.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.ConstantTimeEqMontgomeryPoint.ct_eq`**:\n- No panic (always returns successfully)\n- Delegates to `field.ConstantTimeEqFieldElement51.ct_eq` on the decoded u-coordinates\n- The returned Choice is the constant-time equality result of those field elements\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{subtle::ConstantTimeEq for curve25519_dalek::montgomery::MontgomeryPoint}::ct_eq",
@@ -3424,11 +3431,14 @@
    "is_extraction_artifact": false,
    "fully_verified": false,
    "dependencies": []},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "theorem identity_spec :\n    ∃ p,\n    identity = ok p ∧\n    p.U = backend.serial.u64.field.FieldElement51.ONE ∧\n      p.W = backend.serial.u64.field.FieldElement51.ZERO := by ...",
+   "spec_file":
+   "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/Identity.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.IdentityProjectivePoint.identity`**:\n- No panic (always returns successfully)\n- The resulting ProjectivePoint is the identity with U = 1 and W = 0\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{curve25519_dalek::traits::Identity for curve25519_dalek::montgomery::ProjectivePoint}::identity",
@@ -3458,11 +3468,13 @@
    "is_extraction_artifact": false,
    "fully_verified": false,
    "dependencies": []},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_base_spec (scalar : scalar.Scalar) :\n    ∃ result,\n    mul_base scalar = ok result ∧\n    (∃  e,\n    edwards.EdwardsPoint.mul_base scalar = ok e ∧ \n    (let Y := Field51_as_Nat e.Y \n    let Z := Field51_as_Nat e.Z\n    let u := U8x32_as_Nat result\n    if Z % p = Y % p then\n      u % p = 0\n    else\n      (u * Z) % p = (u * Y + (Z + Y)) % p)\n    ) := by ...",
+   "spec_file": "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/MulBase.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.MontgomeryPoint.mul_base`**:\n- No panic (always returns successfully)\n- Delegates to `edwards.EdwardsPoint.mul_base` and `edwards.EdwardsPoint.to_montgomery`\n- The returned MontgomeryPoint is the Montgomery conversion of the Edwards basepoint result\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{curve25519_dalek::montgomery::MontgomeryPoint}::mul_base",
@@ -3476,11 +3488,14 @@
    "dependencies":
    ["curve25519_dalek.edwards.EdwardsPoint.mul_base",
     "curve25519_dalek.edwards.EdwardsPoint.to_montgomery"]},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_base_clamped_spec (bytes : Array U8 32#usize) :\n    ∃ result,\n    mul_base_clamped bytes = ok result ∧\n    ∃ a,\n      scalar.clamp_integer bytes = ok a ∧\n      montgomery.MontgomeryPoint.mul_base { bytes := a } = ok result := by ...",
+   "spec_file":
+   "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/MulBaseClamped.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.MontgomeryPoint.mul_base_clamped`**:\n- No panic (always returns successfully)\n- Clamps input bytes with `scalar.clamp_integer`\n- Delegates to `montgomery.MontgomeryPoint.mul_base` with the clamped scalar\n- The returned MontgomeryPoint matches the basepoint multiplication result\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{curve25519_dalek::montgomery::MontgomeryPoint}::mul_base_clamped",
@@ -3494,11 +3509,14 @@
    "dependencies":
    ["curve25519_dalek.scalar.clamp_integer",
     "curve25519_dalek.montgomery.MontgomeryPoint.mul_base"]},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_clamped_spec (self : MontgomeryPoint) (bytes : Array U8 32#usize) :\n    ∃ result,\n    mul_clamped self bytes = ok result ∧\n    ∃ a,\n      scalar.clamp_integer bytes = ok a ∧\n      montgomery.MulScalarMontgomeryPointMontgomeryPoint.mul { bytes := a } self =\n        ok result := by ...",
+   "spec_file":
+   "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/MulClamped.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.MontgomeryPoint.mul_clamped`**:\n- No panic (always returns successfully)\n- Clamps input bytes with `scalar.clamp_integer`\n- Delegates to `montgomery.MulScalarMontgomeryPointMontgomeryPoint.mul`\n- The returned MontgomeryPoint matches the clamped scalar multiplication result\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{curve25519_dalek::montgomery::MontgomeryPoint}::mul_clamped",
@@ -3575,11 +3593,14 @@
    "fully_verified": false,
    "dependencies":
    ["curve25519_dalek.montgomery.MulAssignMontgomeryPointShared0Scalar.mul_assign"]},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_assign_spec (self : MontgomeryPoint) (scalar : scalar.Scalar) :\n    ∃ result,\n    mul_assign self scalar = ok result ∧\n    montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul self scalar =\n      ok result := by ...",
+   "spec_file":
+   "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/MulAssign.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.MulAssignMontgomeryPointShared0Scalar.mul_assign`**:\n- No panic (always returns successfully)\n- Delegates to `montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul`\n- The returned MontgomeryPoint equals the Montgomery ladder result for the given scalar and point\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{core::ops::arith::MulAssign<&0 (curve25519_dalek::scalar::Scalar)> for curve25519_dalek::montgomery::MontgomeryPoint}::mul_assign",
@@ -3666,10 +3687,12 @@
    "dependencies":
    ["curve25519_dalek.montgomery.MulShared1ScalarShared0MontgomeryPointMontgomeryPoint.mul"]},
   {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_spec (self : MontgomeryPoint) (sc : scalar.Scalar) :\n    ∃ result,\n    mul self sc = ok result ∧\n    ∃ affine_u x0 scalar_bytes x01 x1 prev_bit bit_choice c x02 x03,\n      backend.serial.u64.field.FieldElement51.from_bytes self = ok affine_u ∧\n      montgomery.IdentityProjectivePoint.identity = ok x0 ∧\n      scalar.Scalar.as_bytes sc = ok scalar_bytes ∧\n      montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul_loop\n          affine_u x0\n          { U := affine_u, W := backend.serial.u64.field.FieldElement51.ONE }\n          scalar_bytes false 254#isize = ok (x01, x1, prev_bit) ∧\n      (↑(UScalar.cast_fromBool .U8 prev_bit) : Result U8) = ok bit_choice ∧\n      subtle.FromChoiceU8.from bit_choice = ok c ∧\n      montgomery.ConditionallySelectableProjectivePoint.conditional_swap x01 x1 c =\n        ok (x02, x03) ∧\n      montgomery.ProjectivePoint.as_affine x02 = ok result := by ...",
+   "spec_file": "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/Mul.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul`**:\n- No panic (always returns successfully)\n- Converts the input u-coordinate to a field element and initializes the ladder\n- Executes the Montgomery ladder loop and final conditional swap\n- Returns the affine u-coordinate of the resulting projective point\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{core::ops::arith::Mul<&0 (curve25519_dalek::scalar::Scalar), curve25519_dalek::montgomery::MontgomeryPoint> for &1 (curve25519_dalek::montgomery::MontgomeryPoint)}::mul",
@@ -3690,9 +3713,10 @@
     "curve25519_dalek.backend.serial.u64.field.FieldElement51.ONE",
     "curve25519_dalek.montgomery.ProjectivePoint.as_affine"]},
   {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_loop_spec\n    (affine_u : backend.serial.u64.field.FieldElement51)\n    (x0 x1 : montgomery.ProjectivePoint)\n    (scalar_bytes : Array U8 32#usize)\n    (prev_bit : Bool)\n    (i : Isize) :\n    ∃ x,\n    mul_loop affine_u x0 x1 scalar_bytes prev_bit i = ok x ∧\n    (i < 0#isize → x = (x0, x1, prev_bit)) ∧\n    (0#isize ≤ i →\n      ∃ i1 byte_idx i2 bit_idx scalar_byte i4 bit choice c x01 x11 x02 x12 i6,\n        i >>> 3#i32 = ok i1 ∧\n        (IScalar.hcast .Usize i1 : Result Usize) = ok byte_idx ∧\n        (i &&& 7#isize : Result Isize) = ok i2 ∧\n        (IScalar.hcast .Usize i2 : Result Usize) = ok bit_idx ∧\n        Array.index_usize scalar_bytes byte_idx = ok scalar_byte ∧\n        scalar_byte >>> bit_idx = ok i4 ∧\n        (i4 &&& 1#u8 : Result U8) = ok bit ∧\n        (UScalar.cast_fromBool .U8 (prev_bit != (bit = 1#u8)) : Result U8) = ok choice ∧\n        core.convert.IntoFrom.into core.convert.FromChoiceU8 choice = ok c ∧\n        montgomery.ConditionallySelectableProjectivePoint.conditional_swap x0 x1 c =\n          ok (x01, x11) ∧\n        montgomery.differential_add_and_double x01 x11 affine_u = ok (x02, x12) ∧\n        i - 1#isize = ok i6 ∧\n        mul_loop affine_u x02 x12 scalar_bytes (bit = 1#u8) i6 =\n          ok x) := by ...",
+   "spec_file": "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/Mul.lean",
    "spec_docstring": null,
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
@@ -3708,11 +3732,13 @@
    "is_extraction_artifact": true,
    "fully_verified": false,
    "dependencies": []},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "theorem mul_spec (self : scalar.Scalar) (point : MontgomeryPoint) :\n    ∃ result,\n    mul self point = ok result ∧\n    montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul point self =\n      ok result := by ...",
+   "spec_file": "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/Mul.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.MulShared1ScalarShared0MontgomeryPointMontgomeryPoint.mul`**:\n- No panic (always returns successfully)\n- Delegates to `montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul`\n- The returned MontgomeryPoint equals the Montgomery ladder result for the given scalar and point\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{core::ops::arith::Mul<&0 (curve25519_dalek::montgomery::MontgomeryPoint), curve25519_dalek::montgomery::MontgomeryPoint> for &1 (curve25519_dalek::scalar::Scalar)}::mul",
@@ -3762,11 +3788,13 @@
    "fully_verified": false,
    "dependencies":
    ["curve25519_dalek.montgomery.MulShared1ScalarShared0MontgomeryPointMontgomeryPoint.mul"]},
-  {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+  {"verified": true,
+   "specified": true,
+   "spec_statement":
+   "theorem eq_spec (self other : MontgomeryPoint) :\n    ∃ b,\n    eq self other = ok b ∧\n    (b = true ↔\n      ∃ c,\n      montgomery.ConstantTimeEqMontgomeryPoint.ct_eq self other = ok c ∧\n      c = Choice.one) := by ...",
+   "spec_file": "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/Eq.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.PartialEqMontgomeryPointMontgomeryPoint.eq`**:\n- No panic (always returns successfully)\n- Returns true iff the u-coordinates are equal modulo p\n- Implemented via constant-time equality followed by Choice-to-Bool conversion\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name":
    "curve25519_dalek::montgomery::{core::cmp::PartialEq<curve25519_dalek::montgomery::MontgomeryPoint> for curve25519_dalek::montgomery::MontgomeryPoint}::eq",
@@ -3816,10 +3844,13 @@
    "fully_verified": false,
    "dependencies": []},
   {"verified": false,
-   "specified": false,
-   "spec_statement": null,
-   "spec_file": null,
-   "spec_docstring": null,
+   "specified": true,
+   "spec_statement":
+   "theorem differential_add_and_double_spec\n    (P Q : montgomery.ProjectivePoint)\n    (affine_PmQ : backend.serial.u64.field.FieldElement51) :\n    ∃ P2 P3,\n    differential_add_and_double P Q affine_PmQ = ok (P2, P3) ∧\n    ∃ t0 t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 t17,\n      backend.serial.u64.field.AddShared0FieldElement51SharedAFieldElement51FieldElement51.add\n        P.U P.W = ok t0 ∧\n      backend.serial.u64.field.SubShared0FieldElement51SharedAFieldElement51FieldElement51.sub\n        P.U P.W = ok t1 ∧\n      backend.serial.u64.field.AddShared0FieldElement51SharedAFieldElement51FieldElement51.add\n        Q.U Q.W = ok t2 ∧\n      backend.serial.u64.field.SubShared0FieldElement51SharedAFieldElement51FieldElement51.sub\n        Q.U Q.W = ok t3 ∧\n      backend.serial.u64.field.FieldElement51.square t0 = ok t4 ∧\n      backend.serial.u64.field.FieldElement51.square t1 = ok t5 ∧\n      backend.serial.u64.field.SubShared0FieldElement51SharedAFieldElement51FieldElement51.sub\n        t4 t5 = ok t6 ∧\n      backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51.mul\n        t0 t3 = ok t7 ∧\n      backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51.mul\n        t1 t2 = ok t8 ∧\n      backend.serial.u64.field.AddShared0FieldElement51SharedAFieldElement51FieldElement51.add\n        t7 t8 = ok t9 ∧\n      backend.serial.u64.field.SubShared0FieldElement51SharedAFieldElement51FieldElement51.sub\n        t7 t8 = ok t10 ∧\n      backend.serial.u64.field.FieldElement51.square t9 = ok t11 ∧\n      backend.serial.u64.field.FieldElement51.square t10 = ok t12 ∧\n      backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51.mul\n        backend.serial.u64.constants.APLUS2_OVER_FOUR t6 = ok t13 ∧\n      backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51.mul\n        t4 t5 = ok t14 ∧\n      backend.serial.u64.field.AddShared0FieldElement51SharedAFieldElement51FieldElement51.add\n        t13 t5 = ok t15 ∧\n      backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51.mul\n        t6 t15 = ok t16 ∧\n      backend.serial.u64.field.MulShared0FieldElement51SharedAFieldElement51FieldElement51.mul\n        affine_PmQ t12 = ok t17 ∧\n      P2 = { U := t14, W := t16 } ∧\n      P3 = { U := t11, W := t17 } := by ...",
+   "spec_file":
+   "Curve25519Dalek/Specs/Montgomery/MontgomeryPoint/DifferentialAddAndDouble.lean",
+   "spec_docstring":
+   "/-- **Spec and proof concerning `montgomery.differential_add_and_double`**:\n- No panic (always returns successfully)\n- The returned pair (P2, P3) is computed using the standard Montgomery ladder\n  formulas for doubling and differential addition\n- The output coordinates are exactly those computed by the sequence of\n  field operations in the implementation\n-/",
    "source": "curve25519-dalek/src/montgomery.rs",
    "rust_name": "curve25519_dalek::montgomery::differential_add_and_double",
    "nested_children": [],
@@ -4046,10 +4077,11 @@
   {"verified": false,
    "specified": true,
    "spec_statement":
-   "theorem curveField_mod_eq (a b : ℕ) : ((a : Edwards.CurveField ) = (b : Edwards.CurveField )) ↔  (a % p = b % p) := by ...",
+   "theorem elligator_ristretto_flavor_spec\n  (r_0 : backend.serial.u64.field.FieldElement51)\n  (h_r_0_bounds : ∀ i, i < 5 → (r_0[i]!).val < 2 ^ 54) :\n  ∃ rist,\n    elligator_ristretto_flavor r_0 = ok rist ∧\n    rist.IsValid := by ...",
    "spec_file":
    "Curve25519Dalek/Specs/Ristretto/RistrettoPoint/ElligatorRistrettoFlavor.lean",
-   "spec_docstring": null,
+   "spec_docstring":
+   "/-- **Spec and proof concerning `ristretto.RistrettoPoint.elligator_ristretto_flavor`**:\n• The function always succeeds (no panic) for all field element inputs\n• Given an input field element r₀, the output RistrettoPoint indeed lies on the Curve25519 Edwards curve, i.e.,\n  it indeed fulfils the curve equation.\n-/",
    "source": "curve25519-dalek/src/ristretto.rs",
    "rust_name":
    "curve25519_dalek::ristretto::{curve25519_dalek::ristretto::RistrettoPoint}::elligator_ristretto_flavor",

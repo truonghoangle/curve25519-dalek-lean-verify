@@ -5,6 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.Mul
 
 /-! # Spec Theorem for `MontgomeryPoint::mul_assign`
 
@@ -51,7 +52,7 @@ theorem mul_assign_spec (self : MontgomeryPoint) (scalar : scalar.Scalar) :
     mul_assign self scalar = ok result ∧
     montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul self scalar =
       ok result := by
-
-    sorry
+    unfold mul_assign
+    progress
 
 end curve25519_dalek.montgomery.MulAssignMontgomeryPointShared0Scalar

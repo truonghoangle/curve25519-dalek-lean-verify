@@ -5,6 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.Mul
 
 /-! # Spec Theorem for `MontgomeryPoint::mul_clamped`
 
@@ -51,7 +52,7 @@ theorem mul_clamped_spec (self : MontgomeryPoint) (bytes : Array U8 32#usize) :
       scalar.clamp_integer bytes = ok a ∧
       montgomery.MulScalarMontgomeryPointMontgomeryPoint.mul { bytes := a } self =
         ok result := by
-
-    sorry
+      unfold  mul_clamped scalar.clamp_integer MulScalarMontgomeryPointMontgomeryPoint.mul
+      progress*
 
 end curve25519_dalek.montgomery.MontgomeryPoint

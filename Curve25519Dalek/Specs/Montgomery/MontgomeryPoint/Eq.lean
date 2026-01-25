@@ -5,7 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-
+import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.CtEq
 /-! # Spec Theorem for `MontgomeryPoint::eq`
 
 Specification and proof for
@@ -52,7 +52,13 @@ theorem eq_spec (self other : MontgomeryPoint) :
       ∃ c,
       montgomery.ConstantTimeEqMontgomeryPoint.ct_eq self other = ok c ∧
       c = Choice.one) := by
-
-    sorry
+    unfold eq
+    progress*
+    unfold subtle.FromBoolChoice.from
+    progress*
+    simp_all
+    cases c with
+    | mk val valid =>
+      simp [Choice.one]
 
 end curve25519_dalek.montgomery.PartialEqMontgomeryPointMontgomeryPoint
