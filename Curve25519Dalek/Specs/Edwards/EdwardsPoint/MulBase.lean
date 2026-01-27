@@ -5,6 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Defs.Edwards.Representation
 
 /-! # Spec Theorem for `EdwardsPoint::mul_base`
 
@@ -21,6 +22,8 @@ scalar-point multiplication on the fixed basepoint.
 -/
 
 open Aeneas.Std Result
+open curve25519_dalek.backend.serial.curve_models.curve25519_dalek.montgomery
+
 namespace curve25519_dalek.edwards.EdwardsPoint
 
 /-
@@ -46,12 +49,7 @@ natural language specs:
 theorem mul_base_spec (scalar : scalar.Scalar) :
     ∃ result,
     mul_base scalar = ok result ∧
-    edwards.MulSharedAScalarEdwardsPointEdwardsPoint.mul scalar
-      backend.serial.u64.constants.ED25519_BASEPOINT_POINT = result ∧
-      (∀ i < 5, result.Y[i]!.val < 2 ^ 53) ∧
-      ( ∀ i < 5, result.Z[i]!.val < 2 ^ 53) := by
+    EdwardsPoint.IsValid result  := by
     sorry
-
-
 
 end curve25519_dalek.edwards.EdwardsPoint

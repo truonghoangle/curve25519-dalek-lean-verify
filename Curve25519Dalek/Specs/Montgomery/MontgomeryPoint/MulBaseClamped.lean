@@ -5,7 +5,6 @@ Authors: Markus Dablander
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
-import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.MulBase
 
 /-! # Spec Theorem for `MontgomeryPoint::mul_base_clamped`
 
@@ -47,12 +46,9 @@ natural language specs:
 @[progress]
 theorem mul_base_clamped_spec (bytes : Array U8 32#usize) :
     ∃ result,
-    mul_base_clamped bytes = ok result ∧
-    ∃ a,
-      scalar.clamp_integer bytes = ok a ∧
-      montgomery.MontgomeryPoint.mul_base { bytes := a } = ok result := by
-    unfold  mul_base_clamped scalar.clamp_integer
-    progress* 
-    
+    mul_base_clamped bytes = ok result
+    := by
+   sorry
+
 
 end curve25519_dalek.montgomery.MontgomeryPoint

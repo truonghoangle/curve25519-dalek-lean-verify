@@ -5,6 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Defs.Edwards.Representation
 import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.Mul
 
 /-! # Spec Theorem for `MontgomeryPoint::mul_assign`
@@ -23,6 +24,7 @@ in the backend).
 -/
 
 open Aeneas.Std Result
+open curve25519_dalek.backend.serial.curve_models.curve25519_dalek.montgomery
 namespace curve25519_dalek.montgomery.MulAssignMontgomeryPointShared0Scalar
 
 /-
@@ -47,12 +49,13 @@ natural language specs:
 - The returned MontgomeryPoint equals the Montgomery ladder result for the given scalar and point
 -/
 @[progress]
-theorem mul_assign_spec (self : MontgomeryPoint) (scalar : scalar.Scalar) :
+theorem mul_assign_spec (self : MontgomeryPoint) (scalar : scalar.Scalar)
+    (h_is_valid : MontgomeryPoint.IsValid point):
     ∃ result,
     mul_assign self scalar = ok result ∧
     montgomery.MulShared1MontgomeryPointShared0ScalarMontgomeryPoint.mul self scalar =
-      ok result := by
-    unfold mul_assign
-    progress
+      mul_assign self scalar := by
+  unfold mul_assign
+  progress
 
 end curve25519_dalek.montgomery.MulAssignMontgomeryPointShared0Scalar

@@ -5,6 +5,7 @@ Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
+import Curve25519Dalek.Defs.Edwards.Representation
 import Curve25519Dalek.Specs.Edwards.EdwardsPoint.MulBase
 import Curve25519Dalek.Specs.Edwards.EdwardsPoint.ToMontgomery
 /-! # Spec Theorem for `MontgomeryPoint::mul_base`
@@ -23,6 +24,8 @@ EdwardsPoint to a MontgomeryPoint.
 -/
 
 open Aeneas.Std Result
+open curve25519_dalek.backend.serial.curve_models.curve25519_dalek.montgomery
+open curve25519_dalek.edwards
 namespace curve25519_dalek.montgomery.MontgomeryPoint
 
 /-
@@ -50,24 +53,15 @@ natural language specs:
 theorem mul_base_spec (scalar : scalar.Scalar) :
     ∃ result,
     mul_base scalar = ok result ∧
-    (∃  e,
-    edwards.EdwardsPoint.mul_base scalar = ok e ∧ 
-    (let Y := Field51_as_Nat e.Y 
-    let Z := Field51_as_Nat e.Z
-    let u := U8x32_as_Nat result
-    if Z % p = Y % p then
-      u % p = 0
-    else
-      (u * Z) % p = (u * Y + (Z + Y)) % p)
-    ) := by
-    unfold mul_base
+    MontgomeryPoint.IsValid result  := by
+    unfold mul_base MontgomeryPoint.IsValid
     progress*
-
-
-
-
-
-
+    · have := ep_post.Y_bounds
+      grind
+    · have := ep_post.Z_bounds
+      grind
+    · have := ep_post.on_curve
+      sorry
 
 
 

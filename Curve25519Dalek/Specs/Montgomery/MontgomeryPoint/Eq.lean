@@ -45,18 +45,17 @@ natural language specs:
 - Implemented via constant-time equality followed by Choice-to-Bool conversion
 -/
 @[progress]
-theorem eq_spec (self other : MontgomeryPoint) :
+theorem eq_spec (u v : MontgomeryPoint) :
     ∃ b,
-    eq self other = ok b ∧
+    eq u v = ok b ∧
     (b = true ↔
-      ∃ c,
-      montgomery.ConstantTimeEqMontgomeryPoint.ct_eq self other = ok c ∧
-      c = Choice.one) := by
+      (U8x32_as_Nat u % 2 ^ 255) ≡ (U8x32_as_Nat v % 2 ^ 255) [MOD p]) := by
     unfold eq
     progress*
     unfold subtle.FromBoolChoice.from
     progress*
     simp_all
+    rw[← c_post]
     cases c with
     | mk val valid =>
       simp [Choice.one]

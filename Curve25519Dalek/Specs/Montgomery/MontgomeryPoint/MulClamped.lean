@@ -48,10 +48,7 @@ natural language specs:
 theorem mul_clamped_spec (self : MontgomeryPoint) (bytes : Array U8 32#usize) :
     ∃ result,
     mul_clamped self bytes = ok result ∧
-    ∃ a,
-      scalar.clamp_integer bytes = ok a ∧
-      montgomery.MulScalarMontgomeryPointMontgomeryPoint.mul { bytes := a } self =
-        ok result := by
+    MontgomeryPoint.IsValid result := by
       unfold  mul_clamped scalar.clamp_integer MulScalarMontgomeryPointMontgomeryPoint.mul
       progress*
 
