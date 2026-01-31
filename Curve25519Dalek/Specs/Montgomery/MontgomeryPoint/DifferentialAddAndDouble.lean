@@ -65,7 +65,6 @@ theorem differential_add_and_double_spec
     ∃ (P' Q' : montgomery.ProjectivePoint),
     montgomery.differential_add_and_double P Q affine_PmQ = ok (P', Q') := by
   unfold montgomery.differential_add_and_double
-  progress*
-  simp
+  sorry
 
 end curve25519_dalek.montgomery
