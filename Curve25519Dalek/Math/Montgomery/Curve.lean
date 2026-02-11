@@ -126,6 +126,14 @@ def mk_point (u v : CurveField)
         rw [Curve25519.A]
         linear_combination -h0)
 
+
+theorem ext (u v x y : CurveField) (equx : u = x) (eqvy : v = y)
+  (huv : v ^ 2 = u ^ 3 + Curve25519.A * u ^ 2 + u)
+  (hxy : y ^ 2 = x ^ 3 + Curve25519.A * x ^ 2 + x) :
+  mk_point u v huv = mk_point x y hxy := by
+  unfold mk_point; simp[equx,eqvy]
+
+
 /-- Extract u-coordinate from a point. -/
 def get_u : Point → CurveField
   | .zero => 0

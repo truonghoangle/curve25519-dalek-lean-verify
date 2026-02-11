@@ -182,16 +182,24 @@ noncomputable def MontgomeryPoint.toPoint (m : MontgomeryPoint) : Point:=
 end MontgomeryPoint
 
 section fromEdwards
+open curve25519_dalek.montgomery
 
 noncomputable def fromEdwards.toPoint : Edwards.Point Edwards.Ed25519 → Point
-  | m =>
-    Montgomery.mk_point (u := (1+m.y)/(1-m.y)) (v := (1+m.y)/((1-m.y)*m.x)) (h := by
-        have := m.on_curve
-        sorry)
+  | e =>
+    let u:= (1 + e.y) / (1 - e.y)
+    MontgomeryPoint.u_affine_toPoint u
 
 theorem comm_mul_fromEdwards (n : ℕ) (e : Edwards.Point Edwards.Ed25519) :
   fromEdwards.toPoint (n • e) = n •  (fromEdwards.toPoint e) := by
   sorry
+
+theorem fromEdwards_eq_MontgomeryPoint_toPoint (e : Edwards.Point Edwards.Ed25519)
+  (m : MontgomeryPoint)
+  (h : U8x32_as_Nat m = (1 + e.y) / (1 - e.y)) :
+  fromEdwards.toPoint e = MontgomeryPoint.toPoint m := by
+  unfold fromEdwards.toPoint MontgomeryPoint.toPoint
+  progress
+  rw[h]
 
 end fromEdwards
 

@@ -123,7 +123,14 @@ theorem to_montgomery_spec (e : EdwardsPoint)
         have h_full := Nat.ModEq.add_left (U8x32_as_Nat a * Field51_as_Nat e.Y) (h_elim)
         grind
     · have :  fromEdwards.toPoint e.toPoint =  MontgomeryPoint.toPoint a := by
-        sorry
+        unfold fromEdwards.toPoint
+        simp
+        unfold MontgomeryPoint.toPoint MontgomeryPoint.u_affine_toPoint
+        simp
+
+        apply Montgomery.ext
+
+
       intro n
       rw[comm_mul_fromEdwards, this]
 
