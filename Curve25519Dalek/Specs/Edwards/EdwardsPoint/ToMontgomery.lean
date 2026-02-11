@@ -24,6 +24,7 @@ u = (1+y)/(1-y) = (Z+Y)/(Z-Y).
 
 open Aeneas.Std Result
 open Montgomery
+open curve25519_dalek.edwards
 namespace curve25519_dalek.edwards.EdwardsPoint
 
 /-
@@ -57,7 +58,7 @@ where p = 2^255 - 19
 -/
 @[progress]
 theorem to_montgomery_spec (e : EdwardsPoint)
-    (h_Y_bounds : ∀ i < 5, e.Y[i]!.val < 2 ^ 53) (h_Z_bounds : ∀ i < 5, e.Z[i]!.val < 2 ^ 53) :
+    (h: e.IsValid) :
     ∃ mp, to_montgomery e = ok mp ∧
     (let Y := Field51_as_Nat e.Y
     let Z := Field51_as_Nat e.Z
@@ -71,6 +72,8 @@ theorem to_montgomery_spec (e : EdwardsPoint)
        := by
   unfold to_montgomery
   progress*
+  · exact h.Z_bounds
+  · exact h.Y_bounds
   · grind
   · grind
   · grind
@@ -123,12 +126,11 @@ theorem to_montgomery_spec (e : EdwardsPoint)
         have h_full := Nat.ModEq.add_left (U8x32_as_Nat a * Field51_as_Nat e.Y) (h_elim)
         grind
     · have :  fromEdwards.toPoint e.toPoint =  MontgomeryPoint.toPoint a := by
-        unfold fromEdwards.toPoint
-        simp
-        unfold MontgomeryPoint.toPoint MontgomeryPoint.u_affine_toPoint
-        simp
+        apply Montgomery.fromEdwards_eq_MontgomeryPoint_toPoint
+        have := curve25519_dalek.edwards.EdwardsPoint.toPoint_of_isValid h
+        rw[this.right]
 
-        apply Montgomery.ext
+
 
 
       intro n
