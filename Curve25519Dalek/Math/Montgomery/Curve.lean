@@ -97,10 +97,39 @@ theorem non_singular {u v : CurveField}
         decide
     · simp[hv]
 
+theorem non_singular' {u v : CurveField}
+    (h : v ^ 2 = u ^ 3 + Curve25519.A * u ^ 2 + u) :
+    v ≠ 0 ∨ (v=0 ∧ 3 * u ^ 2 + 2 * Curve25519.A * u + 1 ≠ 0)  := by
+    by_cases hv: v =0
+    · right
+      simp[hv]
+      simp[hv] at h
+      have :  u ^ 3 + Curve25519.A * u ^ 2 + u = u *( u ^ 2 + Curve25519.A * u  + 1) := by ring
+      rw[this] at h
+      have := mul_eq_zero.mp h.symm
+      rcases this with h1 | h1
+      · simp[h1]
+      · have : 3 * u ^ 2 + 2 * Curve25519.A * u + 1=
+        3 * (u ^ 2 +  Curve25519.A * u + 1) - Curve25519.A * u -2 := by ring
+        rw[this, h1]
+        simp
+        intro h2
+        have : Curve25519.A * u = -2 := by grind
+        simp[this] at h1
+        have eq1: Curve25519.A^2 * u^2 = 4 := by grind
+        have : -2 + (1:CurveField)= -1 := by ring
+        rw[add_assoc, this] at h1
+        have :  Curve25519.A ^ 2 * u^2 + Curve25519.A ^ 2* (-1) = 0  := by grind
+        rw[eq1, Curve25519.A] at this
+        revert this
+        decide
+    · simp[hv]
+
 /-- Create a point from coordinates with curve equation proof and nonsingular condition. -/
 def mk_point (u v : CurveField)
     (h : v ^ 2 = u ^ 3 + Curve25519.A * u ^ 2 + u := by grind) :
     Point :=
+
   .some (x := u) (y := v) (h := by
     constructor
     · rw [WeierstrassCurve.Affine.equation_iff]
@@ -132,7 +161,6 @@ theorem ext (u v x y : CurveField) (equx : u = x) (eqvy : v = y)
   (hxy : y ^ 2 = x ^ 3 + Curve25519.A * x ^ 2 + x) :
   mk_point u v huv = mk_point x y hxy := by
   unfold mk_point; simp[equx,eqvy]
-
 
 /-- Extract u-coordinate from a point. -/
 def get_u : Point → CurveField
@@ -180,5 +208,9 @@ theorem uDBL (P : Point) (PZero : P ≠ 0) (nPT : P ≠ T_point) :
 This follows directly from mathlib's AddCommGroup instance for Weierstrass curve points. -/
 theorem add_assoc' (P Q R : Point) : (P + Q) + R = P + (Q + R) :=
   add_assoc P Q R
+
+
+
+
 
 end Montgomery

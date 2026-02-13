@@ -50,7 +50,8 @@ theorem mul_base_spec (scalar : scalar.Scalar) :
     ∃ res,
     mul_base scalar = ok res ∧
     EdwardsPoint.IsValid res ∧
-    res.toPoint = (U8x32_as_Nat scalar.bytes) • constants.ED25519_BASEPOINT_POINT.toPoint := by
+    res.toPoint = (U8x32_as_Nat scalar.bytes) • constants.ED25519_BASEPOINT_POINT.toPoint ∧
+    res.toPoint.y ≠ 1 := by
     sorry
 
 end curve25519_dalek.edwards.EdwardsPoint

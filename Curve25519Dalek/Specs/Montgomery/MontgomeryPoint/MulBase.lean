@@ -50,19 +50,19 @@ natural language specs:
 - The returned MontgomeryPoint is the Montgomery conversion of the Edwards basepoint result
 -/
 @[progress]
-theorem mul_base_spec (scalar : scalar.Scalar) :
+theorem mul_base_spec (scalar : scalar.Scalar)
+  (non_zero : U8x32_as_Nat scalar.bytes ≥ 1) :
     ∃ result,
     mul_base scalar = ok result ∧
-    Montgomery.MontgomeryPoint.toPoint result = (U8x32_as_Nat scalar.bytes) • (fromEdwards.toPoint constants.ED25519_BASEPOINT_POINT.toPoint)
+    Montgomery.MontgomeryPoint.toPoint result = (U8x32_as_Nat scalar.bytes) • (fromEdwards constants.ED25519_BASEPOINT_POINT.toPoint)
      := by
     unfold mul_base
     progress*
-    · exact ep_post_1.Y_bounds
-    · exact ep_post_1.Z_bounds
     · simp_all
       have := res_post_2 1
       simp at this
       rw[← this]
       apply  Montgomery.comm_mul_fromEdwards
+      apply non_zero
 
 end curve25519_dalek.montgomery.MontgomeryPoint

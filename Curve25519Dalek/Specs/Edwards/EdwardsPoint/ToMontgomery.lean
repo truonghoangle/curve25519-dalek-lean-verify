@@ -67,7 +67,7 @@ theorem to_montgomery_spec (e : EdwardsPoint)
       u % p = 0
     else
       (u * Z) % p = (u * Y + (Z + Y)) % p) ∧
-    (∀ n : ℕ, fromEdwards.toPoint (n • e.toPoint) = n • (MontgomeryPoint.toPoint mp))
+    (e.toPoint.y ≠ 1 →  ∀ n ≥ 1, fromEdwards (n • e.toPoint) = n • (MontgomeryPoint.toPoint mp))
 
        := by
   unfold to_montgomery
@@ -125,15 +125,15 @@ theorem to_montgomery_spec (e : EdwardsPoint)
                   simp only [h_U_eq]
         have h_full := Nat.ModEq.add_left (U8x32_as_Nat a * Field51_as_Nat e.Y) (h_elim)
         grind
-    · have :  fromEdwards.toPoint e.toPoint =  MontgomeryPoint.toPoint a := by
-        apply Montgomery.fromEdwards_eq_MontgomeryPoint_toPoint
+    · intro he
+      have :  fromEdwards e.toPoint =  MontgomeryPoint.toPoint a := by
+        apply Montgomery.fromEdwards_eq_MontgomeryPoint_toPoint _ _ he
         have := curve25519_dalek.edwards.EdwardsPoint.toPoint_of_isValid h
         rw[this.right]
-
-
-
+        sorry
 
       intro n
-      rw[comm_mul_fromEdwards, this]
+      rw[← this]
+      apply comm_mul_fromEdwards
 
 end curve25519_dalek.edwards.EdwardsPoint

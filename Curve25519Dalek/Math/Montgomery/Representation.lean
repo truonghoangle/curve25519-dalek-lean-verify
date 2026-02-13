@@ -102,8 +102,7 @@ Convert MontgomeryPoint to Point Ed25519.
 1. Recovers `y` from `u` via `y = (u-1)/(u+1)`.
 2. Recovers `x` from `y` (choosing the canonical positive root).
 Returns 0 (identity) if invalid.
--/
-noncomputable def MontgomeryPoint.toPoint (m : MontgomeryPoint) : Point Ed25519 :=
+-/noncomputable def MontgomeryPoint.toPoint (m : MontgomeryPoint) : Point Ed25519 :=
   if h : (MontgomeryPoint.IsValid m) then
     -- The following is equivalent to defining u := 8x32_as_Nat m % p, but it uses Horner's method
     --  to avoid un folding heavy computations on large Nats casted as Mod p.
@@ -154,11 +153,12 @@ noncomputable def MontgomeryPoint.toPoint (m : MontgomeryPoint) : Point Ed25519 
 end curve25519_dalek.montgomery
 
 namespace Montgomery
-section MontgomeryPoint
 
 open curve25519_dalek.montgomery
 open curve25519_dalek.math
 
+
+section MontgomeryPoint
 
 /-- Create a point from a MontgomeryPoint byte representation.
     Computes the v-coordinate from u using the Montgomery curve equation v² = u³ + A·u² + u.
@@ -169,58 +169,131 @@ open curve25519_dalek.math
 
 noncomputable def MontgomeryPoint.u_affine_toPoint (u : CurveField) : Point:=
     let v_squared := u ^ 3 + Curve25519.A * u ^ 2 + u
-    let (v_abs, _is_sq) := curve25519_dalek.math.sqrt_checked v_squared
+    match h_call: curve25519_dalek.math.sqrt_checked v_squared with
+    | (v_abs, was_square) =>
     let v := v_abs
-    have curve_eq : v ^ 2 = u ^ 3 + Curve25519.A * u ^ 2 + u := by
-       sorry
-    Montgomery.mk_point (u := u) (v := v) (h := curve_eq)
+    if h_invalid : !was_square then
+      0
+    else
+      Montgomery.mk_point (u := u) (v := v) (h := by
+        replace h_invalid := Bool.eq_false_iff.mpr h_invalid
+        simp only [Bool.not_eq_eq_eq_not, Bool.not_false] at h_invalid
+        have curve_eq : v ^ 2 = u ^ 3 + Curve25519.A * u ^ 2 + u := by
+          apply sqrt_checked_spec v_squared
+          · exact h_call
+          · exact h_invalid
+        apply curve_eq
+     )
 
 
 noncomputable def MontgomeryPoint.toPoint (m : MontgomeryPoint) : Point:=
     let u : CurveField := U8x32_as_Nat m
     MontgomeryPoint.u_affine_toPoint u
+
 end MontgomeryPoint
 
 section fromEdwards
 open curve25519_dalek.montgomery
 
-noncomputable def fromEdwards.toPoint : Edwards.Point Edwards.Ed25519 → Point
+noncomputable def fromEdwards : Edwards.Point Edwards.Ed25519 → Point
   | e =>
-    let u:= (1 + e.y) / (1 - e.y)
-    MontgomeryPoint.u_affine_toPoint u
+    if  e.y = 1 then
+     T_point
+     else
+      let u:= (1 + e.y) / (1 - e.y)
+      MontgomeryPoint.u_affine_toPoint u
 
-theorem comm_mul_fromEdwards (n : ℕ) (e : Edwards.Point Edwards.Ed25519) :
-  fromEdwards.toPoint (n • e) = n •  (fromEdwards.toPoint e) := by
+
+theorem map_zero : fromEdwards 0 = T_point := by
+  unfold fromEdwards
+  simp
+
+
+theorem add_fromEdwards (e₁ e₂ : Edwards.Point Edwards.Ed25519) :
+  fromEdwards (e₁ + e₂) = fromEdwards e₁ + fromEdwards e₂ := by
+  unfold fromEdwards
   sorry
+
+
+
+theorem comm_mul_fromEdwards {n : ℕ} (e : Edwards.Point Edwards.Ed25519) (h : n ≥ 1) :
+  fromEdwards (n • e) = n •  (fromEdwards e) := by
+  induction n
+  · simp_all
+  · rename_i n hn
+    cases n
+    · simp
+    · rename_i n
+      set m:= n+1 with hm
+      have :m ≥ 1 := by
+        rw[hm]
+        simp
+      have hn:= hn this
+      simp[add_smul]
+      rw[add_fromEdwards, hn]
 
 theorem fromEdwards_eq_MontgomeryPoint_toPoint (e : Edwards.Point Edwards.Ed25519)
   (m : MontgomeryPoint)
+  (non : ¬ e.y = 1)
   (h : U8x32_as_Nat m = (1 + e.y) / (1 - e.y)) :
-  fromEdwards.toPoint e = MontgomeryPoint.toPoint m := by
-  unfold fromEdwards.toPoint MontgomeryPoint.toPoint
-  progress
-  rw[h]
+  fromEdwards e = MontgomeryPoint.toPoint m := by
+  unfold fromEdwards MontgomeryPoint.toPoint
+  rw [if_neg non, ← h]
+
+
 
 end fromEdwards
 
-section toMontgomery
+section toEdwards
 open curve25519_dalek.math
 
-theorem sqrt_checked_spec (u : ZMod p) {r : ZMod p} {b : Bool} :
-  sqrt_checked u = (r, b) → b = true → r^2 = u := by
-  intro h_call h_true
-  sorry
-
-noncomputable def toMontgomery.toPoint : Point → Edwards.Point Edwards.Ed25519
-  | .zero => 0
+noncomputable def toEdwards : Point → Option (Edwards.Point Edwards.Ed25519)
+  | .zero => none
   | .some (x := u) (y := v) (h:= h) =>
-    { x := u * v⁻¹, y := (u - 1) * (u + 1)⁻¹, on_curve := (by
-    have eq:=h.left
-    rw [WeierstrassCurve.Affine.equation_iff] at eq
-    simp [MontgomeryCurveCurve25519] at eq
-    have :=h.right
-    simp [WeierstrassCurve.Affine.evalEval_polynomialY, WeierstrassCurve.Affine.evalEval_polynomialX, MontgomeryCurveCurve25519] at this
-    sorry
-    )
- }
-end toMontgomery
+   let y := (u - 1) * (u + 1)⁻¹
+   let den : ZMod p := (d : ZMod p) * y^2 + 1
+   let num : ZMod p := y^2 - 1
+   let x2 : ZMod p := num * den⁻¹
+   match h_call: curve25519_dalek.math.sqrt_checked x2 with
+    | (x_abs, was_square) =>
+    let x := x_abs
+    if h_invalid : !was_square then
+      none
+    else
+    -- For Montgomery -> Edwards, the sign of x is lost.
+    -- We canonically choose the non-negative (even) root.
+    some { x := x_abs, y := y, on_curve := (by
+        replace h_invalid := Bool.eq_false_iff.mpr h_invalid
+        simp only [Bool.not_eq_eq_eq_not, Bool.not_false] at h_invalid
+        have eq:=h.left
+        rw [WeierstrassCurve.Affine.equation_iff] at eq
+        simp [MontgomeryCurveCurve25519] at eq
+        have non:=h.right
+        simp [WeierstrassCurve.Affine.evalEval_polynomialY, WeierstrassCurve.Affine.evalEval_polynomialX, MontgomeryCurveCurve25519] at non
+        have h_x_sq : x_abs^2 = x2 := by
+          apply sqrt_checked_spec x2 h_call h_invalid
+
+        have h_den_nz : den ≠ 0 := by
+          dsimp only [den]
+          apply edwards_denom_nonzero
+
+        have ha : Edwards.Ed25519.a = -1 := rfl
+        have hd : (d : ZMod p) = Edwards.Ed25519.d := rfl
+        rw [ha, h_x_sq]
+        dsimp only [x2, num, den] at ⊢ h_den_nz
+        apply (mul_right_inj' h_den_nz).mp
+        field_simp [h_den_nz]
+        simp only [neg_sub]
+        rw [← hd]
+        try ring)
+      }
+
+
+
+noncomputable def toEdwards.fromMontgomeryPoint (m : MontgomeryPoint) : Option (Edwards.Point Edwards.Ed25519):=
+    let p := MontgomeryPoint.toPoint m
+    toEdwards p
+
+end toEdwards
+
+end Montgomery
