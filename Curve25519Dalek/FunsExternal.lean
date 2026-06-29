@@ -5,6 +5,7 @@ Authors: Oliver Butterley, Zhang-Liao, Alessandro D'Angelo,
   Hoang Le Truong, Markus Ferdinand Dablander
 -/
 import Aeneas
+import Curve25519Dalek.Lint.Basic
 import Curve25519Dalek.Types
 
 /-!
@@ -1223,12 +1224,12 @@ private def scalar.Scalar.Insts.SubtleConditionallySelectable.conditional_select
     core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
   match o with
   | none => ok bytes
-  | some i =>
-    let i1 ← Array.index_usize a.bytes i
-    let i2 ← Array.index_usize b.bytes i
+  | some _i =>
+    let i1 ← Array.index_usize a.bytes _i
+    let i2 ← Array.index_usize b.bytes _i
     let i3 ←
       U8.Insts.SubtleConditionallySelectable.conditional_select i1 i2 choice
-    let a1 ← Array.update bytes i i3
+    let a1 ← Array.update bytes _i i3
     scalar.Scalar.Insts.SubtleConditionallySelectable.conditional_select_loop'
       a b choice a1 iter1
 partial_fixpoint

@@ -15,18 +15,28 @@ maxRecDepth = 10000
 name = "aeneas"
 git = "https://github.com/AeneasVerif/aeneas.git"
 subDir = "backends/lean"
-rev = "a2fcf192"
+rev = "1b39931d"
 
 [[require]]
 name = "PrimeCert"
-git = "https://github.com/oliver-butterley/PrimeCert.git"
-rev = "ef2148a816e1e8d534c8446dac7f2dafcb4b4888"
+git = "https://github.com/b-mehta/PrimeCert.git"
+rev = "15fd61770c9a893af0f5cb7893ea98b7d0bf8d52"
 
 [[lean_lib]]
 name = "Curve25519Dalek"
 
 [[lean_lib]]
 name = "Utils"
+
+# Test suites: the project-linter `#guard_msgs` tests (`Tests.LinterTest.*`) and the
+# property-based Plausible tests (`Tests.PlausibleTests.*`).  Deliberately NOT in
+# `defaultTargets`, so neither the dummy `@[step]` linter theorems nor the randomized
+# Plausible checks run on a normal `lake build` — keeping the test `@[step]` theorems out
+# of the production library and Aeneas's global `@[step]` database.  Run them explicitly
+# with `lake build Tests`.  The `Tests.lean` root module imports both submodules, so Lake
+# discovers the whole suite from it.
+[[lean_lib]]
+name = "Tests"
 
 [[lean_exe]]
 name = "listfuns"

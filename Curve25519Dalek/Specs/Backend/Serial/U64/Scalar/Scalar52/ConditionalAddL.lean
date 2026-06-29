@@ -1,5 +1,5 @@
 /-
-Copyright 2025 Beneficial AI Foundation. All rights reserved.
+Copyright 2025 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Dablander, Oliver Butterley
 -/
@@ -8,93 +8,24 @@ import Curve25519Dalek.Math.Basic
 import Curve25519Dalek.Aux
 import Curve25519Dalek.Specs.Backend.Serial.U64.Constants.L
 
-/-! # Spec Theorem for `Scalar52::conditional_add_l`
+/-! # Spec theorem for `curve25519_dalek::backend::serial::u64::scalar::Scalar52::conditional_add_l`
 
-Specification and proof for `Scalar52::conditional_add_l`.
+This function conditionally adds the group order `L` to a `Scalar52` `self` based on a `Choice`
+`condition`, returning the carry-out and the updated scalar. Concretely, for each limb `i` it
+performs `carry' = (carry >> 52) + self[i] + addend` with `addend = L[i]` if `condition = 1`
+or `0` otherwise, masks `self[i]` to the low 52 bits, and propagates the carry. The 52-bit
+limb bound on the input keeps the intermediate `carry` below `2^53`, ruling out U64 overflow.
 
-This function conditionally adds the group order L to a scalar based on a choice parameter.
+After the 5 limbs telescope, `Scalar52_as_Nat result + 2^260 * (final_carry / 2^52) =
+Scalar52_as_Nat self + condition * Scalar52_as_Nat L`. When `condition = 1` and the input
+lies in `[2^260 - L, 2^260)`, the output is the canonical representative of `self + L`;
+when `condition = 0`, the output equals the input.
 
-Source: curve25519-dalek/src/backend/serial/u64/scalar.rs -/
-
-attribute [-simp] Int.reducePow Nat.reducePow
-set_option exponentiation.threshold 260
-
-/-! # Spec Theorem for `Scalar52::conditional_add_l`
-
-This function conditionally adds the group order `L` to a scalar based on a `choice` parameter.
-
-Source: curve25519-dalek/src/backend/serial/u64/scalar.rs
-
-## Rust source
-
-```rust
-pub(crate) fn conditional_add_l(&mut self, condition: Choice) -> u64 {
-    let mut carry: u64 = 0;
-    let mask = (1u64 << 52) - 1;
-
-    let mut i = 0;
-    while i < 5 {
-        let addend = u64::conditional_select(&0, &constants::L[i], condition);
-        carry = (carry >> 52) + self[i] + addend;
-        self[i] = carry & mask;
-        i += 1;
-    }
-
-    carry
-}
-```
-
-## Proof overview
-
-The function iterates over 5 limbs, at each step computing:
-
-```rust
-carry' = (carry >> 52) + self[i] + addend
-self[i] = carry' & mask
-```
-
-where `addend = L[i]` if `condition=1` or `0` otherwise, and `mask = 2^52 - 1`.
-
-**No overflow**: The key invariant is `carry < 2^53` at each iteration.
-This follows from the precondition `self[i] < 2^52` and the fact that `L[i] < 2^52`:
-  `carry >> 52 < 2`  (since carry < 2^53)
-  `self[i]     < 2^52`
-  `addend      ≤ L[i] < 2^52`
-  `total       < 2 + 2^52 + 2^52 < 2^53 < 2^64`
-Without the bound `self[i] < 2^52`, the addition could overflow u64.
-
-**Value invariant**: After processing limb i, the loop maintains:
-```
-  Scalar52_as_Nat(self') + 2^(52*(i+1)) * (carry'/2^52)
-    = Scalar52_as_Nat(self_orig) + condition * Σ_{j < i+1} 2^(52*j) * L[j]
-         + 2^(52*0) * (carry_init/2^52)
-```
-This follows from the standard radix-2^52 addition with carry propagation:
-each `self[i] = carry' mod 2^52` stores the low bits, while `carry'/2^52`
-propagates to the next limb.
-
-After all 5 limbs, the full sum telescopes to:
-```
-  Scalar52_as_Nat(result) + 2^260 * (carry_final/2^52)
-    = Scalar52_as_Nat(self) + condition * Scalar52_as_Nat(L)
-```
-
-**Natural language spec**:
-
-    • Input: limbs bounded by 2^52
-    • If condition is 1 and input ∈ [2^260 - L, 2^260):
-        - Output value: u' + 2^260 = u + L
-        - Output canonical: u' < L
-        - Output limbs: < 2^52
-    • If condition is 0:
-        - Output value: u' = u
-        - Output limbs: < 2^52
-    • Carry value: not used by caller
-
+Source: "curve25519-dalek/src/backend/serial/u64/scalar.rs"
 -/
 
+open Aeneas Aeneas.Std Result Aeneas.Std.WP
 namespace curve25519_dalek
-open Aeneas Aeneas.Std Aeneas.Std.WP Result 
 
 /- Replace the spec currently in FunsExternal.lean with an alternative phrased in terms of
 `Choice.one`/`Choice.zero`.
@@ -118,6 +49,21 @@ end curve25519_dalek
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
 namespace curve25519_dalek.backend.serial.u64.scalar.Scalar52
 
+attribute [-simp] Int.reducePow Nat.reducePow
+set_option exponentiation.threshold 260
+
+/-- **Spec theorem**
+
+Specification for
+`curve25519_dalek::backend::serial::u64::scalar::Scalar52::conditional_add_l_loop`.
+• The function always succeeds (no panic) under the loop invariants on `self`, `mask`, `i`
+  and `carry`
+• Every output limb is `< 2 ^ 52`
+• The value invariant holds:
+  `Scalar52_as_Nat result.2 + 2^260 * (result.1 / 2^52) =
+   Scalar52_as_Nat self + (if condition = 1 then Scalar52_as_Nat L else 0) +
+   2^(52*i) * (carry / 2^52) -
+   (if condition = 1 then ∑ j ∈ Ico 0 i, 2^(52*j) * L[j] else 0)` -/
 @[step]
 theorem conditional_add_l_loop_spec (self : Scalar52) (condition : subtle.Choice)
     (carry : U64) (mask : U64) (i : Usize) (hself : ∀ j < 5, self[j]!.val < 2 ^ 52)
@@ -178,7 +124,7 @@ theorem conditional_add_l_loop_spec (self : Scalar52) (condition : subtle.Choice
           Nat.and_two_pow_sub_one_eq_mod, Order.add_one_le_iff, UScalar.ofNat_self_val,
           Array.set_val_eq, List.length_set, gt_iff_lt]; agrind
     rw [← h_imb] at hself1_limbs
-    step as ⟨res, hres_limbs, hres_inv⟩
+    step as ⟨res, res_scalar, hres_limbs, hres_inv⟩
     refine ⟨hres_limbs, ?_⟩
     rw [h_imb] at hres_inv
     simp only [hi6] at hres_inv
@@ -216,7 +162,7 @@ theorem conditional_add_l_loop_spec (self : Scalar52) (condition : subtle.Choice
           2 ^ (52 * i.val) * carry1.val := by agrind
       have : 2 ^ (52 * i.val) * carry1.val = 2 ^ (52 * i.val) * (carry.val / 2 ^ 52) +
           2 ^ (52 * i.val) * self[i.val]!.val := by
-        have : addend.val = 0 := haddend_val; agrind
+        have : addend.val = 0 := haddend_val; grind [Array.getElem!_Nat_eq]
       rw [hself1_nat, hpow_split] at hres_inv
       have := Scalar52_limb_le_nat self i.val hi'
       omega
@@ -230,7 +176,7 @@ theorem conditional_add_l_loop_spec (self : Scalar52) (condition : subtle.Choice
       have : 2 ^ (52 * i.val) * carry1.val =
           2 ^ (52 * i.val) * (carry.val / 2 ^ 52) + 2 ^ (52 * i.val) * self[i.val]!.val +
           2 ^ (52 * i.val) * constants.L[i.val]!.val := by
-        have : addend.val = constants.L[i.val]!.val := haddend_val; agrind
+        have : addend.val = constants.L[i.val]!.val := haddend_val; grind [Array.getElem!_Nat_eq]
       have := Scalar52_limb_le_nat self i.val hi'
       omega
   case isFalse hge =>
@@ -241,16 +187,24 @@ theorem conditional_add_l_loop_spec (self : Scalar52) (condition : subtle.Choice
         Scalar52_as_Nat constants.L := by simp [Scalar52_as_Nat]
     cases Choice.eq_zero_or_one condition with
     | inl h => simp [*]
-    | inr h => agrind
+    | inr h =>
+      simp only [h, reduceIte] at *
+      have hi5 : (↑i : Nat) = 5 := by assumption
+      rw [hi5, this]
+      omega
 termination_by 5 - i.val
 decreasing_by agrind
 
-/-- **Spec for `scalar.Scalar52.conditional_add_l`** (tailored for use in `sub`):
-- Requires input limbs bounded by 2^52
-- When condition is 1, requires input value in [2^260 - L, 2^260)
-- When condition is 1: result + 2^260 = input + L, with result < L and limbs < 2^52
-- When condition is 0: result unchanged with limbs < 2^52
--/
+/-- **Spec theorem**
+
+Specification for
+`curve25519_dalek::backend::serial::u64::scalar::Scalar52::conditional_add_l`.
+• The function always succeeds (no panic) when input limbs are `< 2 ^ 52` and the value
+  precondition matches `condition` (see hypotheses)
+• Every output limb is `< 2 ^ 52`
+• When condition is 1, requires input value in [2^260 - L, 2^260)
+• When condition is 1: result + 2^260 = input + L, with result < L and limbs < 2^52
+• When condition is 0: result unchanged with limbs < 2^52 -/
 @[step]
 theorem conditional_add_l_spec (self : Scalar52) (condition : subtle.Choice)
     (hself : ∀ i < 5, self[i]!.val < 2 ^ 52)
@@ -264,25 +218,28 @@ theorem conditional_add_l_spec (self : Scalar52) (condition : subtle.Choice)
       (condition = Choice.zero → Scalar52_as_Nat result.2 = Scalar52_as_Nat self) ⦄ := by
   unfold conditional_add_l
   step*
+  rename_i _ out_scalar
   rw [constants.L_spec] at *
   refine ⟨by assumption, ?_, ?_, ?_⟩
   · -- result < L
     cases Choice.val_eq_zero_or_one condition with
     | inl =>
       have := Choice.eq_zero_of_val condition (by assumption)
-      have : Scalar52_as_Nat result.2 + 2 ^ 260 * (result.1.val / 2 ^ 52) =
+      have : Scalar52_as_Nat out_scalar + 2 ^ 260 * (result.val / 2 ^ 52) =
           Scalar52_as_Nat self := by simp [*]
       agrind
     | inr =>
       have := Choice.eq_one_of_val condition (by assumption)
-      have : Scalar52_as_Nat result.2 < 2 ^ 260 := Scalar52_as_Nat_bounded result.2 (by assumption)
+      have : Scalar52_as_Nat out_scalar < 2 ^ 260 :=
+        Scalar52_as_Nat_bounded out_scalar (by assumption)
       grind [Finset.Ico_self]
   · -- condition = Choice.one case
-    have : Scalar52_as_Nat result.2 < 2 ^ 260 := Scalar52_as_Nat_bounded result.2 (by assumption)
+    have : Scalar52_as_Nat out_scalar < 2 ^ 260 :=
+      Scalar52_as_Nat_bounded out_scalar (by assumption)
     grind [Finset.Ico_self, L_lt]
   · -- condition = Choice.zero case
     intro _
-    have : Scalar52_as_Nat result.2 + 2 ^ 260 * (result.1.val / 2 ^ 52) = Scalar52_as_Nat self := by
+    have : Scalar52_as_Nat out_scalar + 2 ^ 260 * (result.val / 2 ^ 52) = Scalar52_as_Nat self := by
       simp [*]
     agrind [L_lt]
 

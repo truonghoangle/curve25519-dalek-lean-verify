@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2026 Beneficial AI Foundation. All rights reserved.
+Copyright 2026 The Beneficial AI Foundation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alessandro D'Angelo
 -/
@@ -14,55 +14,30 @@ import Curve25519Dalek.Specs.Backend.Serial.CurveModels.ProjectiveNielsPoint.Ide
 import Curve25519Dalek.Specs.Backend.Serial.CurveModels.ProjectiveNielsPoint.Neg
 import Curve25519Dalek.ExternallyVerified
 
-/-! # Spec Theorem for `LookupTable<ProjectiveNielsPoint>::select`
+/-!
+# Spec theorem for `curve25519_dalek::window::LookupTable::select`
 
-Specification for `LookupTable::select`, specialised to `ProjectiveNielsPoint`.
+Constant-time selection from a precomputed table of Edwards-curve multiples.
 
-Given a valid precomputed table `[P, 2P, ..., 8P]` (in `ProjectiveNielsPoint` form)
-and a signed nibble `x ∈ [-8, 8]`, `select` returns (a representation of) `x • P`
-in constant time. The body computes `|x|` via a sign-mask trick and then:
+Given a valid `LookupTable<ProjectiveNielsPoint>` that encodes
+`[1•P, 2•P, ..., 8•P]` for some base `EdwardsPoint P` and a signed 8-bit integer
+`x ∈ [-8, 8]`, `select` returns the projective-Niels representation of `x • P`
+in constant time. The implementation:
 
-1. `t = identity` (= `0·P`);
-2. for `j ∈ {1,...,8}`, conditionally copies `table[j-1]` onto `t` when `|x| = j`;
-3. conditionally negates `t` when `x < 0`.
+1. Let `xmask = x >> 7` (0 if `x ≥ 0`, −1 if `x < 0`; arithmetic shift).
+2. Let `xabs = (x + xmask) XOR xmask = |x|`.
+3. Initialise `t = identity` (= `0 • P`).
+4. For `j ∈ {1, ..., 8}`, conditionally copy `table[j-1]` onto `t` when `|x| = j`.
+   After the loop, `t = |x| • P` (or identity if `|x| = 0`).
+5. Let `neg_mask = xmask & 1` (= 1 iff `x < 0`).
+6. Conditionally replace `t` with `-t` if `neg_mask = 1`, producing `x • P`.
 
-**Source**: curve25519-dalek/src/window.rs, lines 55-78 (inside `impl_lookup_table!` macro).
+Source: "curve25519-dalek/src/window.rs"
 -/
 
 open Aeneas Aeneas.Std Result Aeneas.Std.WP
-open Edwards curve25519_dalek.backend.serial.curve_models
-open curve25519_dalek.edwards
-
-namespace curve25519_dalek
-namespace window.LookupTable
-
-/-
-natural language description:
-
-• Input: a `LookupTable<ProjectiveNielsPoint>` that encodes `[1•P, 2•P, ..., 8•P]`
-  for some base EdwardsPoint `P`, and a signed 8-bit integer `x` with `-8 ≤ x ≤ 8`.
-
-• Computes the projective-Niels representation of `x • P` in constant time:
-  1. Let `xmask = x >> 7` (0 if `x ≥ 0`, −1 if `x < 0`; arithmetic shift).
-  2. Let `xabs = (x + xmask) XOR xmask = |x|`.
-  3. Initialise `t = identity` (0•P).
-  4. For `j ∈ {1, ..., 8}`, conditionally copy `table[j-1]` onto `t` when `|x| = j`.
-     After the loop, `t = |x| • P` (or identity if `|x| = 0`).
-  5. Let `neg_mask = xmask & 1` (= 1 iff `x < 0`).
-  6. Conditionally replace `t` with `-t` if `neg_mask = 1`, producing `x • P`.
-
-natural language specs:
-
-• The function always succeeds (no panic) given `-8 ≤ x ≤ 8`.
-• The result is a valid `ProjectiveNielsPoint`.
-• The result represents `(x.val : ℤ) • P.toPoint` on Ed25519.
--/
-
-/-! ## Helper: Inhabited instance (reuse) -/
-
--- `Inhabited ProjectiveNielsPoint` is already provided in `Window/LookupTable/From.lean`.
-
-/-! ## Helpers: I16 arithmetic operations for the sign-mask trick -/
+open Edwards curve25519_dalek.backend.serial.curve_models curve25519_dalek.edwards
+namespace curve25519_dalek.window.LookupTable
 
 /-- Arithmetic shift right of an I16 by 7 bits.
 For `i ∈ [-8, 8]`, the result is `-1` if `i < 0` and `0` otherwise.
@@ -71,7 +46,7 @@ This is the `xmask = x >> 7` step in `select`. Modelled on
 @[step]
 private theorem i16_shiftRight_7 (i : Std.I16)
     (h_lo : -8 ≤ i.val) (h_hi : i.val ≤ 8) :
-    i >>> 7#i32 ⦃ r =>
+    i >>> 7#i32 ⦃ (r : Std.I16) =>
       r.val = i.val / 128 ∧
       (r.val = -1 ∨ r.val = 0) ∧
       (r.val = -1 ↔ i.val < 0) ⦄ := by
@@ -101,27 +76,19 @@ private theorem i16_shiftRight_7 (i : Std.I16)
     rw [h_val_eq]
     omega
 
-/-! ## Loop spec for `LookupTable<ProjectiveNielsPoint>::select_loop` -/
-
-/-- **Spec for `window.LookupTable<ProjectiveNielsPoint>::select_loop`**:
-
-Given a valid table `[P, 2P, ..., 8P]` (in `ProjectiveNielsPoint` form) and an
-iterator `iter` with `iter.start.val = s ∈ [1, 9]`, `iter.«end».val = 9`:
-
-- At entry, if the loop has already examined `j ∈ [1, s)` and found a match
-  (i.e., `xabs.val ∈ [1, s)`), then `t.toPoint = xabs.val • P.toPoint`; otherwise
-  `t.toPoint = 0`. (At `s = 1` this is just `t.toPoint = 0`.)
-
-- At exit (`s = 9`), since `xabs.val ∈ [0, 8]`:
-  - if `xabs.val ∈ [1, 8]`: the loop matched, `t.toPoint = xabs.val • P.toPoint`;
-  - if `xabs.val = 0`: no match, `t.toPoint = 0 = 0 • P.toPoint`.
-  Both cases collapse to `result.toPoint = xabs.val • P.toPoint`.
-
-Body of one iteration with `j = iter.start.val`:
-1. `ct_eq xabs j` returns `Choice.one` iff `xabs.val = j.val`;
-2. `table[j - 1]` gives `j • P` (valid);
-3. `conditional_assign t table[j-1] c`: picks `table[j-1]` iff match, else keeps `t`;
-4. recurse with iterator advanced (`iter1.start = s + 1`). -/
+/-- **Spec theorem for the loop body of `curve25519_dalek::window::LookupTable::select`**
+• The function always succeeds (no panic) under the loop invariants (a valid
+  table `[P, 2P, ..., 8P]`, `1 ≤ iter.start.val ≤ 9`, `iter.«end».val = 9`,
+  `0 ≤ xabs.val ≤ 8`, and `t.toPoint` matching the running invariant).
+• The result is a valid `ProjectiveNielsPoint`.
+• The result represents `(xabs.val : ℤ) • P.toPoint` on Ed25519. At entry,
+  if `xabs.val ∈ [1, iter.start.val)` the running `t.toPoint` already equals
+  `xabs.val • P.toPoint`, otherwise `t.toPoint = 0`. At exit
+  (`iter.start.val = 9`), both cases collapse to
+  `result.toPoint = xabs.val • P.toPoint`. Each iteration with
+  `j = iter.start.val` performs `ct_eq xabs j` and conditionally assigns
+  `table[j-1] = j • P` onto `t` when matched, before recursing with
+  `iter1.start = j + 1`. -/
 @[step]
 theorem select_loop_spec {P : EdwardsPoint}
     (table : window.LookupTable ProjectiveNielsPoint)
@@ -136,13 +103,14 @@ theorem select_loop_spec {P : EdwardsPoint}
     (h_t_point : t.toPoint =
         (if 1 ≤ xabs.val ∧ xabs.val < (iter.start.val : ℤ)
           then (xabs.val : ℤ) • P.toPoint else 0)) :
-    window.LookupTable.select_loop
+    select_loop
         ProjectiveNielsPoint.Insts.SubtleConditionallySelectable
         iter table xabs t ⦃ (result : ProjectiveNielsPoint) =>
-      result.IsValid ∧ result.toPoint = (xabs.val : ℤ) • P.toPoint ⦄ := by
-  unfold window.LookupTable.select_loop
+      result.IsValid ∧
+      result.toPoint = (xabs.val : ℤ) • P.toPoint ⦄ := by
+  unfold select_loop
   obtain ⟨o, iter1, h_next, h_none_branch, h_some_branch⟩ :=
-    curve25519_dalek.scalar.Scalar.Insts.SubtleConditionallySelectable.next_spec iter
+    scalar.Scalar.Insts.SubtleConditionallySelectable.next_spec iter
   rw [h_next, bind_tc_ok]
   match o with
   | none =>
@@ -151,11 +119,11 @@ theorem select_loop_spec {P : EdwardsPoint}
       intro hlt
       exact absurd (h_some_branch hlt).1 (by simp)
     have hstart9 : iter.start.val = 9 := by omega
-    simp only [spec_ok]
     refine ⟨h_t_valid, ?_⟩
     rw [h_t_point, hstart9]
     push_cast
-    -- Collapse invariant: xabs.val ∈ [0, 8], so either xabs.val = 0 (0•P = 0) or xabs.val ∈ [1, 8].
+    -- Collapse invariant: xabs.val ∈ [0, 8], so either xabs.val = 0
+    -- (giving 0•P = 0) or xabs.val ∈ [1, 8].
     by_cases hx : xabs.val = 0
     · simp [hx]
     · have hxge1 : (1 : ℤ) ≤ xabs.val := by omega
@@ -248,7 +216,7 @@ theorem select_loop_spec {P : EdwardsPoint}
         · by_cases hxlt : xabs.val < ((iter.start.val : ℤ))
           · have hxlt' : xabs.val < ((iter.start.val : ℤ) + 1) := by omega
             simp only [hxge, hxlt, hxlt', and_self, if_true]
-          · push_neg at hxlt
+          · push Not at hxlt
             have hxnlt' : ¬ (xabs.val < ((iter.start.val : ℤ) + 1)) := by omega
             have hxnlt : ¬ (xabs.val < (iter.start.val : ℤ)) := not_lt.mpr hxlt
             simp only [hxge, hxnlt, hxnlt', and_false, if_false]
@@ -262,16 +230,12 @@ theorem select_loop_spec {P : EdwardsPoint}
     rw [hiter1_start, hiter1_end]
     grind
 
-/-! ## Spec for `LookupTable<ProjectiveNielsPoint>::select` -/
-
-/-- **Spec and proof concerning `window.LookupTable<ProjectiveNielsPoint>::select`**:
-- No panic (always returns successfully) on inputs with `-8 ≤ x ≤ 8`.
-- The returned `ProjectiveNielsPoint` is valid.
-- It represents `(x.val : ℤ) • P.toPoint`, where `P` is the EdwardsPoint used to
-  construct the table (so `table[k].toPoint = (k+1) • P.toPoint` for `k ∈ Fin 8`).
-
-This follows the Rust semantics literally:
-`selected.toPoint = (sign of x) • (|x| • P) = x • P`. -/
+/-- **Spec theorem for `curve25519_dalek::window::LookupTable::select`**
+• The function always succeeds (no panic) on inputs with `-8 ≤ x ≤ 8`.
+• The returned `ProjectiveNielsPoint` is valid.
+• The result represents `(x.val : ℤ) • P.toPoint` on Ed25519, where `P` is the
+  `EdwardsPoint` used to construct the table (so
+  `table[k].toPoint = (k+1) • P.toPoint` for `k ∈ Fin 8`). -/
 @[step]
 theorem select_spec {P : EdwardsPoint}
     (table : window.LookupTable ProjectiveNielsPoint)
@@ -280,7 +244,7 @@ theorem select_spec {P : EdwardsPoint}
         table.val[k].toPoint = ((k.val + 1 : ℕ) : ℤ) • P.toPoint)
     (x : Std.I8)
     (h_bounds_lo : -8 ≤ x.val) (h_bounds_hi : x.val ≤ 8) :
-    window.LookupTable.select
+    select
         ProjectiveNielsPoint.Insts.Curve25519_dalekTraitsIdentity
         ProjectiveNielsPoint.Insts.SubtleConditionallySelectable
         ProjectiveNielsPoint.Insts.CoreMarkerCopy
@@ -294,7 +258,7 @@ theorem select_spec {P : EdwardsPoint}
   let* ⟨ i, i_post ⟩ ← IScalar.cast.step_spec
   let* ⟨ _ ⟩ ← massert_spec
   · simp only [i_post, IScalar.le_equiv, IScalarTy.I8_numBits_eq, IScalarTy.I16_numBits_eq,
-    Nat.reduceLeDiff, IScalar.val_mod_pow_greater_numBits]; agrind
+      Nat.reduceLeDiff, IScalar.val_mod_pow_greater_numBits]; agrind
   let* ⟨ i1, i1_post ⟩ ← IScalar.cast.step_spec
   -- Bridge: casting I8 → I16 preserves val.
   have hi1_val : i1.val = x.val := by
@@ -316,7 +280,7 @@ theorem select_spec {P : EdwardsPoint}
   have hi3_val : i3.val = x.val + xmask.val := by rw [i3_post, hi2_val]
   have hxabs_val : xabs.val = x.val.natAbs := by
     have hxabs_bv_toInt : xabs.val = (i3.bv ^^^ xmask.bv).toInt := by
-      change xabs.bv.toInt = _; fcongr 1
+      change xabs.bv.toInt = _; fcongr 1; exact xabs_post2
     rw [hxabs_bv_toInt]
     rcases xmask_post2 with hm | hm
     · -- xmask.val = -1, so x.val < 0, and xmask.bv = allOnes 16.
@@ -347,7 +311,7 @@ theorem select_spec {P : EdwardsPoint}
       have hx_nn : 0 ≤ x.val := by
         rw [← hi1_val]
         by_contra hneg
-        push_neg at hneg
+        push Not at hneg
         have := xmask_post3.mpr hneg; omega
       have hxm_bv : xmask.bv = 0#16 := by
         apply BitVec.eq_of_toInt_eq
@@ -375,7 +339,7 @@ theorem select_spec {P : EdwardsPoint}
   have aux_i5_one_of_xmask_neg1 (h : xmask.val = -1) : i5 = 1#u8 := by
     have hxm_bv := aux_xmask_bv_neg1 h
     have hi4_bv : i4.bv = 1#16 := by
-      simp only [i4_post2, hxm_bv]; decide
+      simp only [i4_post2, hxm_bv]; rfl
     apply UScalar.eq_of_val_eq
     change i5.bv.toNat = (1#u8 : U8).bv.toNat
     rw [i5_post]; change (i4.bv.signExtend 8).toNat = _
@@ -383,7 +347,7 @@ theorem select_spec {P : EdwardsPoint}
   have aux_i5_zero_of_xmask_zero (h : xmask.val = 0) : i5 = 0#u8 := by
     have hxm_bv := aux_xmask_bv_zero h
     have hi4_bv : i4.bv = 0#16 := by
-      simp only [i4_post2, hxm_bv]; decide
+      simp only [i4_post2, hxm_bv]; rfl
     apply UScalar.eq_of_val_eq
     change i5.bv.toNat = (0#u8 : U8).bv.toNat
     rw [i5_post]; change (i4.bv.signExtend 8).toNat = _
@@ -397,7 +361,7 @@ theorem select_spec {P : EdwardsPoint}
   rcases hi5_cases with hi5_zero | hi5_one
   · -- Case A: i5 = 0#u8 → neg_mask = Choice.zero (no flip). x.val ≥ 0.
     have hx_nn : 0 ≤ x.val := by
-      by_contra hneg; push_neg at hneg
+      by_contra hneg; push Not at hneg
       have hi1_neg : i1.val < 0 := by rw [hi1_val]; exact hneg
       have hxm_neg : xmask.val = -1 := xmask_post3.mpr hi1_neg
       have := aux_i5_one_of_xmask_neg1 hxm_neg
@@ -416,7 +380,7 @@ theorem select_spec {P : EdwardsPoint}
     exact_mod_cast Int.natAbs_of_nonneg hx_nn
   · -- Case B: i5 = 1#u8 → neg_mask = Choice.one (flip). x.val < 0.
     have hx_neg : x.val < 0 := by
-      by_contra hnn; push_neg at hnn
+      by_contra hnn; push Not at hnn
       have hi1_nn : 0 ≤ i1.val := by rw [hi1_val]; exact hnn
       have hxm_zero : xmask.val = 0 := by
         rcases xmask_post2 with hxm | hxm
@@ -439,5 +403,4 @@ theorem select_spec {P : EdwardsPoint}
       Int.ofNat_natAbs_of_nonpos (le_of_lt hx_neg)
     omega
 
-end window.LookupTable
-end curve25519_dalek
+end curve25519_dalek.window.LookupTable

@@ -8,7 +8,6 @@ import Mathlib.Algebra.Field.ZMod
 import Mathlib.NumberTheory.LegendreSymbol.Basic
 import Mathlib.Tactic.NormNum.LegendreSymbol
 import Mathlib.Tactic.LinearCombination
-import PrimeCert.PrimeList
 
 /-!
 # Pure Mathematical Foundations for Edwards Curves
@@ -85,29 +84,109 @@ variable {F : Type} [Field F]
 section Completeness
 variable [NeZero (2 : F)]
 
+/-- Helper to completeness of Twisted Edwards addition:
+If λ² = 1 where λ = d·x₁·x₂·y₁·y₂, then d is a square — contradiction. -/
+theorem lam_sq_eq_one_impossible
+    (C : EdwardsCurve F) (ha : IsSquare C.a) (hd : ¬IsSquare C.d) (p1 p2 : Point C) :
+    (C.d * p1.x * p2.x * p1.y * p2.y) ^ 2 ≠ 1 := by
+/-
+Proof is adapted from https://eprint.iacr.org/2007/286 Theorem 3.3 and
+https://eprint.iacr.org/2008/013 Section 6. We write it here for completeness
+
+Recall the twisted curve equation: ax² + y² = 1 + dx²y².
+We will show that if a is square, d is nonsquare, and λ := dx₁y₁x₂y₂ ∈ {-1, 1},
+we get a contradiction
+
+Lemma 1: dx₁²y₁²(ax₂² + y₂²) = ax₁² + y₁²
+
+  Proof:
+    dx₁²y₁²(ax₂² + y₂²)
+    = dx₁²y₁² + d²x₁²y₁²x₂²y₂² (curve eq)
+    = dx₁²y₁² + λ² (λ def)
+    = dx₁²y₁² + 1 (simp)
+    = ax₁² + y₁² (by curve eq)
+
+Lemma 2: Let a' = sqrt(a) then
+    (a'x₁ + λy₁)² = dx₁²y₁²(a'x₂ + y₂)²
+
+  Proof:
+    (a'x₁ + λy₁)²
+    = ax₁² + λ²y₁² + 2a'λx₁y₁ (expan)
+    = ax₁² + y₁² + 2a'λx₁y₁ (simp)
+    = dx₁²y₁²(ax₂² + y₂²) + 2a'λx₁y₁ (lemma 1)
+    = dx₁²y₁²(ax₂² + y₂²) (λ def)
+      + 2a'dx₁y₁x₂y₂x₁y₁
+    = dx₁²y₁²(a'x₂ + y₂)² (simp)
+
+Lemma 3: Let a' = sqrt(a) then
+    (a'x₁ - λy₁)² = dx₁²y₁²(a'x₂ - y₂)²
+  Proof:
+    Proof is identical to Lemma 2
+
+To finish up, consider three cases:
+  1. Suppose a'x₂ + y₂ ≠ 0. Since x₁,y₁ ≠ 0 by hypo, we can
+     manipulate lemma 2 to get
+       d = ((x₁ + λy₁)/x₁y₁(a'x₂ + y₂))²
+     and therefore d is a square. Contradiction.
+  2. Suppose a'x₂ - y₂ ≠ 0. We can similarly manipulate
+     lemma 3 to get
+       d = ((x₁ - λy₁)/x₁y₁(a'x₂ - y₂))²
+     and therefore d is a square. Contradiction.
+  3. Suppose a'x₂ + y₂ = a'x₂ - y₂ = 0. Since a' ≠ 0, we get
+     that x₂ = 0. Contradiction.
+-/
+  by_contra hLamSq
+  set lamVal := C.d * p1.x * p2.x * p1.y * p2.y with hlam
+  have lem1 :
+      C.d * p1.x ^ 2 * p1.y ^ 2 * (C.a * p2.x ^ 2 + p2.y ^ 2) =
+        C.a * p1.x ^ 2 + p1.y ^ 2 := by
+    linear_combination
+      C.d * p1.x ^ 2 * p1.y ^ 2 * p2.on_curve + hLamSq - p1.on_curve
+  obtain ⟨a', ha'⟩ := ha
+  have lem2 :
+      (a' * p1.x + lamVal * p1.y) ^ 2 =
+        C.d * p1.x ^ 2 * p1.y ^ 2 * (a' * p2.x + p2.y) ^ 2 := by
+    linear_combination
+      (C.d * p1.x ^ 2 * p1.y ^ 2 * p2.x ^ 2 - p1.x ^ 2) * ha' +
+      p1.y ^ 2 * hLamSq - lem1
+  /- From lem2, if any denominator is nonzero, d is a square — contradiction. -/
+  have hp2x : p2.x ≠ 0 := by grind
+  by_cases hcasePos : a' * p2.x + p2.y = 0
+  · by_cases hcaseNeg : a' * p2.x - p2.y = 0
+    · /- Both zero ⟹ 2a'x₂ = 0 ⟹ x₂ = 0 (since a' ≠ 0). Contradiction. -/
+      exact hp2x <| (mul_eq_zero.mp (show 2 * a' * p2.x = 0 by
+        linear_combination (hcasePos + hcaseNeg))).resolve_left
+        (mul_ne_zero two_ne_zero (by grind))
+    · /- a'x₂ - y₂ ≠ 0 ⟹ d = ((a'x₁ - λy₁) / (x₁y₁(a'x₂ - y₂)))² -/
+      exact hd ⟨(a' * p1.x - lamVal * p1.y) /
+        (p1.x * p1.y * (a' * p2.x - p2.y)), by
+        rw [← sq, div_pow, eq_div_iff (pow_ne_zero _ (by grind))]
+        linear_combination -lem2⟩
+  · /- a'x₂ + y₂ ≠ 0 ⟹ d = ((a'x₁ + λy₁) / (x₁y₁(a'x₂ + y₂)))² -/
+    exact hd ⟨(a' * p1.x + lamVal * p1.y) /
+      (p1.x * p1.y * (a' * p2.x + p2.y)), by
+      rw [← sq, div_pow, eq_div_iff (pow_ne_zero _ (by grind))]
+      linear_combination -lem2⟩
+
 /-- **Completeness of Twisted Edwards Addition**
 
 For a twisted Edwards curve E_{a,d} over a field k with char(k) ≠ 2,
 if a is a square and d is not a square in k, then
 for all points (x₁, y₁), (x₂, y₂) on E_{a,d}: 1 + d·x₁x₂y₁y₂ ≠ 0 and 1 - d·x₁x₂y₁y₂ ≠ 0.
-This makes the addition law "complete" (no exceptional cases). -/
+This makes the addition law "complete" (no exceptional cases).
+-/
 theorem complete_addition_denominators_ne_zero
     (C : EdwardsCurve F) (ha : IsSquare C.a) (hd : ¬IsSquare C.d) (p1 p2 : Point C) :
-    let lam := C.d * p1.x * p2.x * p1.y * p2.y
-    (1 + lam ≠ 0) ∧ (1 - lam ≠ 0) := by
-  /- **Reference**: Bernstein, Birkner, Joye, Lange, Peters.
-  "Twisted Edwards Curves". AFRICACRYPT 2008.
-  https://eprint.iacr.org/2008/013.pdf, Section 6.
-  The proof shows that if ε = d·x₁x₂y₁y₂ ∈ {-1, 1}, then d would be a square,
-  contradicting the hypothesis. -/
-  sorry
+    let lamVal := C.d * p1.x * p2.x * p1.y * p2.y
+    (1 + lamVal ≠ 0) ∧ (1 - lamVal ≠ 0) := by
+  grind [lam_sq_eq_one_impossible C ha hd p1 p2]
 
 /-- For Ed25519, the addition formula denominators are never zero.
     This follows from the completeness theorem since a = -1 is a square (p ≡ 1 mod 4)
     and d is not a square in F_p. -/
 theorem Ed25519.denomsNeZero (p1 p2 : Point Ed25519) :
-    let lam := Ed25519.d * p1.x * p2.x * p1.y * p2.y
-    (1 + lam ≠ 0) ∧ (1 - lam ≠ 0) :=
+    let lamVal := Ed25519.d * p1.x * p2.x * p1.y * p2.y
+    (1 + lamVal ≠ 0) ∧ (1 - lamVal ≠ 0) :=
   complete_addition_denominators_ne_zero Ed25519 neg_one_is_square d_not_square p1 p2
 
 /-! ## Addition Formulas -/
@@ -124,7 +203,7 @@ omit [NeZero (2 : F)] in
 The sum of two points on a twisted Edwards curve stays on the curve, provided the denominators in
 the addition formula are non-zero. -/
 theorem add_closure (C : EdwardsCurve F) (p1 p2 : Point C)
-    (h : let lam := C.d * p1.x * p2.x * p1.y * p2.y; (1 + lam ≠ 0) ∧ (1 - lam ≠ 0)) :
+    (h : let lamVal := C.d * p1.x * p2.x * p1.y * p2.y; (1 + lamVal ≠ 0) ∧ (1 - lamVal ≠ 0)) :
     let (x, y) := add_coords C (p1.x, p1.y) (p2.x, p2.y)
     C.a * x^2 + y^2 = 1 + C.d * x^2 * y^2 := by
   set x₁ := p1.x; set y₁ := p1.y
@@ -219,9 +298,9 @@ instance : SMul ℤ (Point Ed25519) := ⟨zsmul_Ed25519⟩
 
 /-- Simplification lemma for add_coords with explicit pairs. -/
 theorem add_coords_mk (C : EdwardsCurve F) (x₁ y₁ x₂ y₂ : F) :
-    let lam := C.d * x₁ * x₂ * y₁ * y₂;
+    let lamVal := C.d * x₁ * x₂ * y₁ * y₂;
     add_coords C (x₁, y₁) (x₂, y₂) =
-      ((x₁ * y₂ + y₁ * x₂) / (1 + lam), (y₁ * y₂ - C.a * x₁ * x₂) / (1 - lam)) := rfl
+      ((x₁ * y₂ + y₁ * x₂) / (1 + lamVal), (y₁ * y₂ - C.a * x₁ * x₂) / (1 - lamVal)) := rfl
 
 /-- The x-coordinate of p + q on Ed25519. Used for unfolding in specific proofs. -/
 theorem add_x (p q : Point Ed25519) :
@@ -249,7 +328,7 @@ theorem add_zero_Ed25519 (p : Point Ed25519) : p + (0 : Point Ed25519) = p := by
 /-- Negation is a left inverse: -p + p = 0. -/
 theorem neg_add_cancel_Ed25519 (p : Point Ed25519) : -p + p = (0 : Point Ed25519) := by
   have h : p.y^2 - p.x^2 = 1 + (d : CurveField) * p.x^2 * p.y^2 := by
-    have := p.on_curve; simp only [Ed25519, neg_mul, one_mul] at this; grind
+    have := p.on_curve; simp only [Ed25519, neg_mul, one_mul] at this; linear_combination this
   have : 1 + (d : CurveField) * p.x^2 * p.y^2 ≠ 0 := calc
     1 + d * p.x^2 * p.y^2 = 1 - d * (-p.x) * p.x * p.y * p.y := by ring
     _ ≠ 0 := (Ed25519.denomsNeZero (-p) p).2
