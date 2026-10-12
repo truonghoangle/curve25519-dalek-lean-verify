@@ -5,7 +5,7 @@ Authors: Oliver Butterley, Hoang Le Truong
 -/
 import Curve25519Dalek.Math.Basic
 import Curve25519Dalek.Funs
-import Curve25519Dalek.Aux
+import Curve25519Dalek.Auxiliary
 import Mathlib.Tactic.IntervalCases
 import Mathlib.Tactic.GCongr
 import Mathlib.Algebra.BigOperators.Ring.Finset
@@ -63,16 +63,19 @@ theorem clamp_integer_spec (bytes : Array U8 32#usize) :
     intro l i j v hne hj
     rw [getElem!_pos (l.set i v) j (by simpa using hj), getElem!_pos l j hj,
       List.getElem_set_ne hne]
-  have hand : ∀ n < 256, n &&& 248 = 8 * (n / 8) := by decide
-  have hor : ∀ n < 256, n &&& 127 ||| 64 = 64 + n % 64 := by decide
+  have hand : ∀ n < 256, n &&& 248 = 8 * (n / 8) := by
+    intro n hn; interval_cases n <;> rfl
+  have hor : ∀ n < 256, n &&& 127 ||| 64 = 64 + n % 64 := by
+    intro n hn; interval_cases n <;> rfl
   have h0 : i1.val = 8 * (((bytes : List U8)[0]!).val / 8) := by
     rw [i1_post1, UScalar.val_and]
+    simp only [← getElem!_pos]
     exact hand _ (by scalar_tac)
   have h31 : i5.val = 64 + ((bytes : List U8)[31]!).val % 64 := by
     rw [i5_post1, UScalar.val_or]
-    simp only [Array.set_val_eq, UScalar.ofNatCore_val_eq]
+    simp only [Array.set_val_eq, UScalar.ofNatCore_val_eq, ← getElem!_pos]
     rw [get_set_self _ _ _ (by simp [hlen]), i3_post1, UScalar.val_and]
-    simp only [Array.set_val_eq, UScalar.ofNatCore_val_eq]
+    simp only [Array.set_val_eq, UScalar.ofNatCore_val_eq, ← getElem!_pos]
     rw [get_set_ne _ _ _ _ (by omega) (by omega)]
     exact hor _ (by scalar_tac)
   have hsplit : ∀ l : List U8,
@@ -108,7 +111,8 @@ theorem clamp_integer_spec (bytes : Array U8 32#usize) :
       gcongr
       scalar_tac
     calc M ≤ ∑ x ∈ Finset.Ico 1 31, 2 ^ (8 * x) * 255 := this
-    _ = 2 ^ 248 - 256 := by decide
+    _ = 2 ^ 248 - 256 := by simp only [Finset.sum_Ico_eq_sum_range,
+    Finset.sum_range_succ, Finset.sum_range_zero]; norm_num
   have hb0 : ((bytes : List U8)[0]!).val < 256 := by scalar_tac
   have hb31 : ((bytes : List U8)[31]!).val < 256 := by scalar_tac
   refine ⟨?_, ?_, ?_, ?_⟩ <;> omega

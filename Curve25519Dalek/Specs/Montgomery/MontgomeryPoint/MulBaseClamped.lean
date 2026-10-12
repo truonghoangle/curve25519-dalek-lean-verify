@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
-import Curve25519Dalek.Aux
+import Curve25519Dalek.Auxiliary
 import Curve25519Dalek.Math.Basic
 import Curve25519Dalek.Math.Montgomery.Representation
 import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.MulBase
@@ -46,6 +46,6 @@ theorem mul_base_clamped_spec (bytes : Array U8 32#usize) :
   unfold mul_base_clamped
   step with scalar.clamp_integer_spec
   step with mul_base_spec ({ bytes := a } : scalar.Scalar) a_post2
-  simp_all [← U8x32_as_Nat_eq_foldr' a]
+  simp_all
 
 end curve25519_dalek.montgomery.MontgomeryPoint
