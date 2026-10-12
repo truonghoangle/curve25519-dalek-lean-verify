@@ -29,23 +29,18 @@ namespace curve25519_dalek.edwards.EdwardsPoint
 /-- **Spec theorem for `curve25519_dalek::edwards::EdwardsPoint::mul_clamped`**
 • The function always succeeds (no panic) for a valid input EdwardsPoint `self`
 • The result is a valid EdwardsPoint
-• There exists a clamped 32-byte scalar `c` (the bitwise-clamped form of `bytes`)
-  such that `c` is divisible by the cofactor `h = 8`
-• `c < 2^255`
-• `2^254 ≤ c`
-• `result.toPoint = c • self.toPoint`, i.e., scalar multiplication of `self.toPoint`
-  by the natural number `c`
+• `result.toPoint = n • self.toPoint` where
+  `n = 2^254 + 8 * ((U8x32_as_Nat bytes / 8) % 2^251)` is the *deterministic*
+  clamped value of the input bytes (RFC 7748 `decodeScalar25519`); `n` is
+  divisible by the cofactor `h = 8` and lies in `[2^254, 2^255)`
 -/
 @[step]
 theorem mul_clamped_spec (self : EdwardsPoint) (bytes : Array U8 32#usize)
     (h_self_valid : self.IsValid) :
     mul_clamped self bytes ⦃ (result : EdwardsPoint) =>
       result.IsValid ∧
-      (∃ clamped_scalar,
-        h ∣ U8x32_as_Nat clamped_scalar ∧
-        U8x32_as_Nat clamped_scalar < 2 ^ 255 ∧
-        2 ^ 254 ≤ U8x32_as_Nat clamped_scalar ∧
-        result.toPoint = (U8x32_as_Nat clamped_scalar) • self.toPoint) ⦄ := by
+      result.toPoint =
+        (2 ^ 254 + 8 * (U8x32_as_Nat bytes / 8 % 2 ^ 251)) • self.toPoint ⦄ := by
   unfold mul_clamped
   step*
 

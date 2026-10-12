@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
-import Curve25519Dalek.Auxiliary
+import Curve25519Dalek.Aux
 import Curve25519Dalek.Math.Basic
 import Curve25519Dalek.Math.Montgomery.Representation
 import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.Mul
@@ -29,25 +29,23 @@ namespace curve25519_dalek.montgomery.MontgomeryPoint
 
 /-- **Spec theorem for `curve25519_dalek::montgomery::MontgomeryPoint::mul_clamped`**
 • The function always succeeds (no panic)
-• There exists a valid clamped scalar satisfying `h ∣ U8x32_as_Nat clamped_scalar`
-  and `2 ^ 254 ≤ U8x32_as_Nat clamped_scalar < 2 ^ 255`
 • The result satisfies `MontgomeryPoint.mkPoint result = m • (MontgomeryPoint.mkPoint P)`
-  where `m = U8x32_as_Nat clamped_scalar`
+  where `m = 2^254 + 8 * ((U8x32_as_Nat bytes / 8) % 2^251)` is the *deterministic*
+  clamped value of the input bytes (RFC 7748 `decodeScalar25519`); `m` is divisible
+  by the cofactor `h = 8` and lies in `[2^254, 2^255)`
 -/
 @[step]
 theorem mul_clamped_spec (P : MontgomeryPoint) (bytes : Array U8 32#usize)
     (hP_bound : U8x32_as_Nat P < 2 ^ 255) :
     mul_clamped P bytes ⦃ (result : MontgomeryPoint) =>
-      (∃ clamped_scalar,
-      h ∣ U8x32_as_Nat clamped_scalar ∧
-      U8x32_as_Nat clamped_scalar < 2 ^ 255 ∧
-      2 ^ 254 ≤ U8x32_as_Nat clamped_scalar ∧
-      let m := (U8x32_as_Nat clamped_scalar)
-      MontgomeryPoint.mkPoint result = m • (MontgomeryPoint.mkPoint P)) ⦄ := by
+      MontgomeryPoint.mkPoint result =
+        (2 ^ 254 + 8 * (U8x32_as_Nat bytes / 8 % 2 ^ 251)) •
+          (MontgomeryPoint.mkPoint P) ⦄ := by
   unfold mul_clamped
   step*
   have := Nat.mod_eq_of_lt a_post2
   rw [this] at result_post
-  exact ⟨a, a_post1, a_post2, a_post3, result_post⟩
+  rw [← a_post4]
+  exact result_post
 
 end curve25519_dalek.montgomery.MontgomeryPoint

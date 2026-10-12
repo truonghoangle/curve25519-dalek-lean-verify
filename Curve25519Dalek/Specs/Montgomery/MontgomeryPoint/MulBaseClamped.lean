@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hoang Le Truong
 -/
 import Curve25519Dalek.Funs
-import Curve25519Dalek.Auxiliary
+import Curve25519Dalek.Aux
 import Curve25519Dalek.Math.Basic
 import Curve25519Dalek.Math.Montgomery.Representation
 import Curve25519Dalek.Specs.Montgomery.MontgomeryPoint.MulBase
@@ -29,25 +29,23 @@ namespace curve25519_dalek.montgomery.MontgomeryPoint
 
 /-- **Spec theorem for `curve25519_dalek::montgomery::MontgomeryPoint::mul_base_clamped`**
 • The function always succeeds (no panic)
-• There exists a clamped integer `n` with `h ∣ n` and `2^254 ≤ n < 2^255` such that
+• With `n = 2^254 + 8 * ((U8x32_as_Nat bytes / 8) % 2^251)` the *deterministic*
+  clamped value of the input bytes (RFC 7748 `decodeScalar25519`, divisible by the
+  cofactor `h = 8` and lying in `[2^254, 2^255)`):
   `mkPoint result = T_point` if `(n • Edwards.basepoint).y = 1`, and
   `mkPoint result = abs_montgomery (n • fromEdwards basepoint)` otherwise
 -/
 @[step]
 theorem mul_base_clamped_spec (bytes : Array U8 32#usize) :
     mul_base_clamped bytes ⦃ (result : MontgomeryPoint) =>
-      (∃ clamped_scalar_nat,
-      h ∣ clamped_scalar_nat ∧
-      clamped_scalar_nat < 2 ^ 255 ∧
-      2 ^ 254 ≤ clamped_scalar_nat ∧
-      (if (clamped_scalar_nat • Edwards.basepoint).y = 1 then
+      let n := 2 ^ 254 + 8 * (U8x32_as_Nat bytes / 8 % 2 ^ 251)
+      (if (n • Edwards.basepoint).y = 1 then
           MontgomeryPoint.mkPoint result = T_point
         else MontgomeryPoint.mkPoint result =
-          abs_montgomery (clamped_scalar_nat • fromEdwards _root_.Edwards.basepoint))) ⦄ := by
+          abs_montgomery (n • fromEdwards _root_.Edwards.basepoint)) ⦄ := by
   unfold mul_base_clamped
   step with scalar.clamp_integer_spec
   step with mul_base_spec ({ bytes := a } : scalar.Scalar) a_post2
-  use U8x32_as_Nat_foldr a
-  simp_all [U8x32_as_Nat_eq_foldr' a]
+  simp_all [← U8x32_as_Nat_eq_foldr' a]
 
 end curve25519_dalek.montgomery.MontgomeryPoint
