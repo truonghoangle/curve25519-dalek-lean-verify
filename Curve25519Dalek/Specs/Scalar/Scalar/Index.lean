@@ -29,5 +29,9 @@ theorem index_spec (self : scalar.Scalar) (_index : Std.Usize)
       result = self.bytes.val[_index.val]! ⦄ := by
   unfold index
   step*
+<<<<<<< HEAD
+=======
+  rw [result_post, getElem!_pos]
+>>>>>>> 26d49052347e52cb3923952ea225d28faf48fe72
 
 end curve25519_dalek.scalar.Scalar.Insts.CoreOpsIndexIndexUsizeU8
