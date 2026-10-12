@@ -102,11 +102,7 @@ def U8.Insts.SubtleConditionallySelectable : subtle.ConditionallySelectable
   conditional_swap := U8.Insts.SubtleConditionallySelectable.conditional_swap
 }
 
-<<<<<<< HEAD
-/-- Trait implementation: [zeroize::{zeroize::Zeroize for Z}]
-=======
 /-- Trait implementation: [zeroize::{impl zeroize::Zeroize for Z}]
->>>>>>> 26d49052347e52cb3923952ea225d28faf48fe72
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs', lines 270:0-272:23
     Name pattern: [zeroize::Zeroize<@Z>] -/
 @[reducible, rust_trait_impl "zeroize::Zeroize<@Z>"]
@@ -115,11 +111,7 @@ def zeroize.Zeroize.Blanket {Z : Type} (DefaultIsZeroesInst :
   zeroize := zeroize.Zeroize.Blanket.zeroize DefaultIsZeroesInst
 }
 
-<<<<<<< HEAD
-/-- Trait implementation: [zeroize::{zeroize::DefaultIsZeroes for u64}]
-=======
 /-- Trait implementation: [zeroize::{impl zeroize::DefaultIsZeroes for u64}]
->>>>>>> 26d49052347e52cb3923952ea225d28faf48fe72
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs', lines 282:10-282:40
     Name pattern: [zeroize::DefaultIsZeroes<u64>] -/
 @[reducible, rust_trait_impl "zeroize::DefaultIsZeroes<u64>"]
@@ -128,11 +120,7 @@ def U64.Insts.ZeroizeDefaultIsZeroes : zeroize.DefaultIsZeroes Std.U64 := {
   coredefaultDefaultInst := core.default.DefaultU64
 }
 
-<<<<<<< HEAD
-/-- Trait implementation: [zeroize::{zeroize::DefaultIsZeroes for bool}]
-=======
 /-- Trait implementation: [zeroize::{impl zeroize::DefaultIsZeroes for bool}]
->>>>>>> 26d49052347e52cb3923952ea225d28faf48fe72
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs', lines 282:10-282:40
     Name pattern: [zeroize::DefaultIsZeroes<bool>] -/
 @[reducible, rust_trait_impl "zeroize::DefaultIsZeroes<bool>"]
@@ -141,11 +129,7 @@ def Bool.Insts.ZeroizeDefaultIsZeroes : zeroize.DefaultIsZeroes Bool := {
   coredefaultDefaultInst := Bool.Insts.CoreDefaultDefault
 }
 
-<<<<<<< HEAD
-/-- Trait implementation: [zeroize::{zeroize::DefaultIsZeroes for u8}]
-=======
 /-- Trait implementation: [zeroize::{impl zeroize::DefaultIsZeroes for u8}]
->>>>>>> 26d49052347e52cb3923952ea225d28faf48fe72
     Source: '/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs', lines 282:10-282:40
     Name pattern: [zeroize::DefaultIsZeroes<u8>] -/
 @[reducible, rust_trait_impl "zeroize::DefaultIsZeroes<u8>"]
